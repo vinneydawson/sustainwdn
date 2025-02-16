@@ -37,70 +37,96 @@ const JobDetails = () => {
   const { jobId } = useParams<JobRouteParams>();
   const navigate = useNavigate();
 
-  const { data: job, isLoading: isLoadingJob } = useQuery({
+  const { data: job, isLoading: isLoadingJob, error } = useQuery({
     queryKey: ["job-role", jobId],
     queryFn: async () => {
       if (!jobId) return null;
 
-      const { data: rawData, error } = await supabase
-        .from("job_roles")
-        .select(`
-          *,
-          career_pathways (*)
-        `)
-        .eq("id", jobId)
-        .maybeSingle();
+      console.log("Fetching job with ID:", jobId);
       
-      if (error) {
-        console.error("Supabase error:", error);
+      try {
+        const { data: rawData, error } = await supabase
+          .from("job_roles")
+          .select(`
+            *,
+            career_pathways (*)
+          `)
+          .eq("id", jobId)
+          .maybeSingle();
+        
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
+        
+        if (!rawData) {
+          console.log("No job found with ID:", jobId);
+          return null;
+        }
+
+        console.log("Raw job data:", rawData);
+
+        // Transform career pathway data
+        const transformedCareerPathway = rawData.career_pathways ? {
+          ...rawData.career_pathways,
+          description: transformContent(rawData.career_pathways.description),
+          requirements: Array.isArray(rawData.career_pathways.requirements)
+            ? rawData.career_pathways.requirements.map(req => transformContent(req))
+            : null
+        } : null;
+
+        // Transform job role data
+        const transformedJob = {
+          ...rawData,
+          description: transformContent(rawData.description),
+          resources: Array.isArray(rawData.resources)
+            ? rawData.resources.map(res => transformContent(res))
+            : [],
+          related_jobs: Array.isArray(rawData.related_jobs)
+            ? rawData.related_jobs.map(rel => transformContent(rel))
+            : [],
+          tasks_responsibilities: rawData.tasks_responsibilities
+            ? Object.fromEntries(
+                Object.entries(rawData.tasks_responsibilities as Record<string, any>).map(([key, value]) => [
+                  key,
+                  transformContent(value)
+                ])
+              )
+            : null,
+          certificates_degrees: isCertificatesDegrees(rawData.certificates_degrees)
+            ? rawData.certificates_degrees
+            : { education: [], certificates: [], experience: [] },
+          career_pathways: transformedCareerPathway
+        };
+
+        console.log("Transformed job data:", transformedJob);
+        return transformedJob as JobRole;
+      } catch (error) {
+        console.error("Error fetching job:", error);
         throw error;
       }
-      
-      if (!rawData) {
-        console.log("No job found with ID:", jobId);
-        return null;
-      }
-
-      console.log("Raw job data:", rawData);
-
-      // Transform career pathway data
-      const transformedCareerPathway = rawData.career_pathways ? {
-        ...rawData.career_pathways,
-        description: transformContent(rawData.career_pathways.description),
-        requirements: Array.isArray(rawData.career_pathways.requirements)
-          ? rawData.career_pathways.requirements.map(req => transformContent(req))
-          : null
-      } : null;
-
-      // Transform job role data
-      const transformedJob = {
-        ...rawData,
-        description: transformContent(rawData.description),
-        resources: Array.isArray(rawData.resources)
-          ? rawData.resources.map(res => transformContent(res))
-          : [],
-        related_jobs: Array.isArray(rawData.related_jobs)
-          ? rawData.related_jobs.map(rel => transformContent(rel))
-          : [],
-        tasks_responsibilities: rawData.tasks_responsibilities
-          ? Object.fromEntries(
-              Object.entries(rawData.tasks_responsibilities as Record<string, any>).map(([key, value]) => [
-                key,
-                transformContent(value)
-              ])
-            )
-          : null,
-        certificates_degrees: isCertificatesDegrees(rawData.certificates_degrees)
-          ? rawData.certificates_degrees
-          : { education: [], certificates: [], experience: [] },
-        career_pathways: transformedCareerPathway
-      };
-
-      console.log("Transformed job data:", transformedJob);
-      return transformedJob as JobRole;
     },
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    cacheTime: 1000 * 60 * 30, // Keep cached data for 30 minutes
     enabled: !!jobId,
   });
+
+  if (error) {
+    console.error("Query error:", error);
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Error Loading Job</h1>
+          <p className="text-gray-600 mb-4">There was an error loading the job details. Please try again.</p>
+          <Button variant="default" onClick={() => navigate("/explore")}>
+            Back to Explore
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoadingJob) {
     return (
