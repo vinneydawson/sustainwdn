@@ -14,12 +14,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/components/ui/use-toast";
 import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import { JobsTable } from "@/components/admin/JobsTable";
 import { JobDialog } from "@/components/admin/JobDialog";
-import { useJobs } from "@/hooks/use-jobs";
 import { usePathways } from "@/hooks/use-pathways";
+import { useJobs } from "@/hooks/use-jobs";
 import type { JobRole } from "@/types/job";
 
 const AdminJobs = () => {
@@ -65,6 +64,7 @@ const AdminJobs = () => {
   // Group jobs by pathway
   const groupedJobs = jobs?.reduce((acc, job) => {
     const pathwayId = job.pathway_id;
+    if (!pathwayId) return acc; // Skip jobs with no pathway_id
     if (!acc[pathwayId]) {
       acc[pathwayId] = [];
     }

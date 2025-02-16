@@ -7,10 +7,27 @@ import { JobHeader } from "@/components/job-details/JobHeader";
 import { JobSection } from "@/components/job-details/JobSection";
 import { JobListSection } from "@/components/job-details/JobListSection";
 import { JobRole } from "@/types/job";
+import { Json } from "@/integrations/supabase/types";
 
 type JobRouteParams = {
   jobId: string;
 }
+
+interface CertificatesDegrees {
+  education: string[];
+  certificates: string[];
+  experience: string[];
+}
+
+const isValidCertificatesDegrees = (value: Json | null): value is CertificatesDegrees => {
+  if (!value || typeof value !== 'object') return false;
+  const certDegrees = value as Record<string, unknown>;
+  return (
+    Array.isArray(certDegrees.education) &&
+    Array.isArray(certDegrees.certificates) &&
+    Array.isArray(certDegrees.experience)
+  );
+};
 
 const JobDetails = () => {
   const { jobId } = useParams<JobRouteParams>();
@@ -72,19 +89,9 @@ const JobDetails = () => {
               ])
             )
           : null,
-        certificates_degrees: rawData.certificates_degrees
-          ? {
-              education: Array.isArray(rawData.certificates_degrees.education)
-                ? rawData.certificates_degrees.education
-                : [],
-              certificates: Array.isArray(rawData.certificates_degrees.certificates)
-                ? rawData.certificates_degrees.certificates
-                : [],
-              experience: Array.isArray(rawData.certificates_degrees.experience)
-                ? rawData.certificates_degrees.experience
-                : []
-            }
-          : null,
+        certificates_degrees: isValidCertificatesDegrees(rawData.certificates_degrees)
+          ? rawData.certificates_degrees
+          : { education: [], certificates: [], experience: [] },
         career_pathways: transformedCareerPathway
       };
 
