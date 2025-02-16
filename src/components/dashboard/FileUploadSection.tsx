@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -86,6 +85,8 @@ export function FileUploadSection({ user }: { user: User }) {
       const { error: uploadError, data } = await supabase.storage
         .from('documents')
         .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
           onUploadProgress: (progress) => {
             const percent = (progress.loaded / progress.total) * 100;
             setUploadProgress(percent);

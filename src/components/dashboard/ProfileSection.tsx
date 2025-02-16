@@ -10,9 +10,9 @@ import { User } from "@supabase/supabase-js";
 
 interface Profile {
   id: string;
-  full_name: string;
-  bio: string;
-  avatar_url: string;
+  full_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
 }
 
 export function ProfileSection({ user }: { user: User }) {
@@ -34,7 +34,7 @@ export function ProfileSection({ user }: { user: User }) {
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       
@@ -42,6 +42,29 @@ export function ProfileSection({ user }: { user: User }) {
         setProfile(data);
         setFullName(data.full_name || "");
         setBio(data.bio || "");
+      } else {
+        // If no profile exists, create one
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert({ id: user.id })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+
+        // Fetch the newly created profile
+        const { data: newProfile, error: fetchError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (fetchError) throw fetchError;
+        if (newProfile) {
+          setProfile(newProfile);
+          setFullName(newProfile.full_name || "");
+          setBio(newProfile.bio || "");
+        }
       }
     } catch (error: any) {
       toast({
