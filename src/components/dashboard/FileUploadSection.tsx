@@ -86,11 +86,7 @@ export function FileUploadSection({ user }: { user: User }) {
         .from('documents')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false,
-          onUploadProgress: (progress) => {
-            const percent = (progress.loaded / progress.total) * 100;
-            setUploadProgress(percent);
-          },
+          upsert: false
         });
 
       if (uploadError) throw uploadError;
@@ -211,7 +207,11 @@ export function FileUploadSection({ user }: { user: User }) {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Button asChild variant="outline" size="sm">
+              <Button 
+                asChild 
+                className="bg-primary-600 hover:bg-primary-700 text-white"
+                size="sm"
+              >
                 <a href={file.url} target="_blank" rel="noopener noreferrer">
                   Download
                 </a>

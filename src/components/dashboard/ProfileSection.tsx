@@ -203,7 +203,11 @@ export function ProfileSection({ user }: { user: User }) {
 
           {isEditing && (
             <div className="flex gap-4">
-              <Button onClick={handleSave} disabled={isLoading}>
+              <Button 
+                onClick={handleSave} 
+                disabled={isLoading}
+                className="bg-primary-600 hover:bg-primary-700 text-white"
+              >
                 {isLoading ? "Saving..." : "Save Changes"}
               </Button>
               <Button
