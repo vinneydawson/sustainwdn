@@ -17,7 +17,7 @@ import { CareerPathway } from "@/types/job";
 interface PathwayDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Partial<CareerPathway>) => void;
+  onSubmit: (data: Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>) => void;
   initialData?: CareerPathway;
 }
 
@@ -27,34 +27,39 @@ export function PathwayDialog({
   onSubmit,
   initialData,
 }: PathwayDialogProps) {
-  const { register, handleSubmit, reset } = useForm<Partial<CareerPathway>>({
+  const { register, handleSubmit, reset } = useForm<Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>>({
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || { content: "" },
       icon: initialData?.icon || "BookOpen",
       salary_range: initialData?.salary_range || "",
       skills: initialData?.skills || [],
+      requirements: initialData?.requirements || null,
     },
   });
 
   useEffect(() => {
     if (open) {
-      reset(initialData || {
+      reset(initialData ? {
+        title: initialData.title,
+        description: initialData.description,
+        icon: initialData.icon,
+        salary_range: initialData.salary_range || "",
+        skills: initialData.skills || [],
+        requirements: initialData.requirements || null,
+      } : {
         title: "",
         description: { content: "" },
         icon: "BookOpen",
         salary_range: "",
         skills: [],
+        requirements: null,
       });
     }
   }, [open, initialData, reset]);
 
-  const handleFormSubmit = (data: Partial<CareerPathway>) => {
-    onSubmit({
-      ...data,
-      description: { content: data.description?.content || "" },
-      skills: data.skills?.filter(Boolean) || [],
-    });
+  const handleFormSubmit = (data: Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>) => {
+    onSubmit(data);
     onOpenChange(false);
   };
 

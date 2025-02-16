@@ -50,10 +50,13 @@ const AdminPathways = () => {
   });
 
   const createPathway = useMutation({
-    mutationFn: async (newPathway: Partial<CareerPathway>) => {
+    mutationFn: async (newPathway: Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from("career_pathways")
-        .insert([newPathway])
+        .insert([{
+          ...newPathway,
+          description: { content: newPathway.description.content },
+        }])
         .select()
         .single();
 
@@ -77,10 +80,13 @@ const AdminPathways = () => {
   });
 
   const updatePathway = useMutation({
-    mutationFn: async ({ id, ...pathway }: Partial<CareerPathway>) => {
+    mutationFn: async ({ id, ...pathway }: CareerPathway) => {
       const { data, error } = await supabase
         .from("career_pathways")
-        .update(pathway)
+        .update({
+          ...pathway,
+          description: { content: pathway.description.content },
+        })
         .eq("id", id)
         .select()
         .single();
@@ -129,7 +135,7 @@ const AdminPathways = () => {
     },
   });
 
-  const handleSubmit = (data: Partial<CareerPathway>) => {
+  const handleSubmit = (data: Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>) => {
     if (selectedPathway) {
       updatePathway.mutate({ ...data, id: selectedPathway.id });
     } else {
