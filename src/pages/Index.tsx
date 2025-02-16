@@ -11,11 +11,11 @@ const Index = () => {
       <header className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center animate-fadeIn">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Build Your Future in
-            <span className="text-primary-600"> Sustainable Careers</span>
+            Welcome to SustainWDN™
+            <span className="block text-primary-600 mt-2">Your Future in Sustainable Careers</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Discover meaningful career paths that contribute to a greener future while achieving your professional goals.
+            Join SustainWDN™'s community of forward-thinking professionals and discover meaningful career paths that shape a sustainable future.
           </p>
           <Button className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-6 rounded-lg text-lg shadow-lg transition-all hover:shadow-xl">
             Start Your Journey
@@ -31,9 +31,9 @@ const Index = () => {
             <div className="text-primary-600 mb-4">
               <Leaf className="h-12 w-12" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Sustainable Pathways</h3>
+            <h3 className="text-xl font-semibold mb-2">SustainWDN™ Pathways</h3>
             <p className="text-gray-600">
-              Explore career paths that contribute to environmental sustainability and social responsibility.
+              Explore curated career paths that contribute to environmental sustainability and social responsibility.
             </p>
           </Card>
 
@@ -41,9 +41,9 @@ const Index = () => {
             <div className="text-primary-600 mb-4">
               <BookOpen className="h-12 w-12" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Guided Learning</h3>
+            <h3 className="text-xl font-semibold mb-2">Expert Guidance</h3>
             <p className="text-gray-600">
-              Access comprehensive resources and structured learning paths tailored to your career goals.
+              Access SustainWDN™'s comprehensive resources and structured learning paths tailored to your goals.
             </p>
           </Card>
 
@@ -51,9 +51,9 @@ const Index = () => {
             <div className="text-primary-600 mb-4">
               <Target className="h-12 w-12" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Track Progress</h3>
+            <h3 className="text-xl font-semibold mb-2">Progress Tracking</h3>
             <p className="text-gray-600">
-              Monitor your journey with interactive tools and meaningful milestones.
+              Monitor your SustainWDN™ journey with interactive tools and meaningful milestones.
             </p>
           </Card>
         </div>
@@ -62,9 +62,9 @@ const Index = () => {
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16 text-center">
         <div className="max-w-3xl mx-auto backdrop-blur-sm bg-white/50 p-8 rounded-2xl border border-gray-100 shadow-lg">
-          <h2 className="text-3xl font-bold mb-4">Ready to Make an Impact?</h2>
+          <h2 className="text-3xl font-bold mb-4">Join SustainWDN™ Today</h2>
           <p className="text-gray-600 mb-6">
-            Join our community of forward-thinking professionals and start your journey toward a sustainable career today.
+            Be part of the growing SustainWDN™ community shaping the future of sustainable careers.
           </p>
           <Button className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-4 rounded-lg">
             Create Your Account
