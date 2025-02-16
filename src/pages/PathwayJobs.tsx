@@ -97,7 +97,7 @@ const PathwayJobs = () => {
           <Button
             variant={selectedLevel === null ? "outline" : "outline"}
             onClick={() => setSelectedLevel(null)}
-            className={selectedLevel === null ? "bg-[#7E69AB] text-white hover:bg-[#7E69AB]/90" : ""}
+            className={selectedLevel === null ? "bg-gray-100 text-gray-700 hover:bg-gray-200" : ""}
           >
             All Levels
           </Button>
@@ -106,7 +106,7 @@ const PathwayJobs = () => {
               key={level.id}
               variant={selectedLevel === level.id ? "outline" : "outline"}
               onClick={() => setSelectedLevel(level.id)}
-              className={selectedLevel === level.id ? "bg-[#7E69AB] text-white hover:bg-[#7E69AB]/90" : ""}
+              className={selectedLevel === level.id ? "bg-gray-100 text-gray-700 hover:bg-gray-200" : ""}
             >
               {level.label}
             </Button>
