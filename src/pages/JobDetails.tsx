@@ -37,9 +37,10 @@ const transformContent = (value: any): { content: string } => {
   return { content: JSON.stringify(value) };
 };
 
-const parseTasksList = (tasks: TasksResponsibilities): string[] => {
+const parseTasksList = (tasks: TasksResponsibilities | null): string[] => {
   console.log("Parsing tasks:", tasks);
-  return Object.values(tasks || {}).map(task => task.content);
+  if (!tasks || typeof tasks !== 'object') return [];
+  return Object.values(tasks).map(task => task.content);
 };
 
 const isCertificatesDegrees = (value: Json | null): value is CertificatesDegreesData => {
@@ -102,7 +103,7 @@ const JobDetails = () => {
         } : null;
 
         // Get tasks and responsibilities
-        const tasks = rawData.tasks_responsibilities || {};
+        const tasks = rawData.tasks_responsibilities as TasksResponsibilities;
         const tasksList = parseTasksList(tasks);
 
         console.log("Tasks list:", tasksList);
