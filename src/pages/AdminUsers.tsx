@@ -35,27 +35,34 @@ const AdminUsers = () => {
   const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      // First get all user roles
+      // Get the current user's role to verify admin status
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: currentUserRole } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      if (currentUserRole?.role !== "admin") {
+        throw new Error("Not authorized");
+      }
+
+      // Get all user roles
       const { data: userRoles, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id, role");
       
       if (rolesError) throw rolesError;
 
-      // Get users from auth
-      const { data: { users: authUsers }, error: usersError } = await supabase.auth.admin.listUsers();
-      
-      if (usersError) throw usersError;
-
-      if (!authUsers) return [];
-
       const typedUserRoles = userRoles as UserRole[];
 
-      // Combine the data
-      return authUsers.map((user) => ({
-        id: user.id,
-        email: user.email || 'No email',
-        role: typedUserRoles?.find((r) => r.user_id === user.id)?.role || "user",
+      // Return the data with roles
+      return typedUserRoles.map((userRole) => ({
+        id: userRole.user_id,
+        email: "User " + userRole.user_id.slice(0, 8), // Using a truncated ID as we can't access emails
+        role: userRole.role,
       }));
     },
   });
@@ -113,7 +120,7 @@ const AdminUsers = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Email</TableHead>
+                    <TableHead>User ID</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -121,7 +128,7 @@ const AdminUsers = () => {
                 <TableBody>
                   {users?.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.id}</TableCell>
                       <TableCell>
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
