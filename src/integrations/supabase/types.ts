@@ -9,7 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      career_pathways: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          level: Database["public"]["Enums"]["job_level"]
+          requirements: string[] | null
+          salary_range: string | null
+          skills: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          icon: string
+          id?: string
+          level: Database["public"]["Enums"]["job_level"]
+          requirements?: string[] | null
+          salary_range?: string | null
+          skills?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          level?: Database["public"]["Enums"]["job_level"]
+          requirements?: string[] | null
+          salary_range?: string | null
+          skills?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +56,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      job_level: "entry" | "mid" | "advanced"
     }
     CompositeTypes: {
       [_ in never]: never
