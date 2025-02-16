@@ -35,7 +35,7 @@ export function useProfile(user: User) {
   const [timezone, setTimezone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const isInitialLoad = useRef(true);
+  const skipNextUpdate = useRef(false);
 
   const [debouncedFirstName] = useDebounce(firstName, 1000);
   const [debouncedLastName] = useDebounce(lastName, 1000);
@@ -74,6 +74,7 @@ export function useProfile(user: User) {
         toast({
           title: "Profile updated",
           description: "Your changes have been saved.",
+          duration: 3000,
         });
       }
 
@@ -91,6 +92,7 @@ export function useProfile(user: User) {
         title: "Error updating profile",
         description: error.message,
         variant: "destructive",
+        duration: 3000,
       });
     } finally {
       setIsLoading(false);
@@ -99,6 +101,7 @@ export function useProfile(user: User) {
 
   const fetchProfile = async () => {
     try {
+      skipNextUpdate.current = true;
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -142,6 +145,7 @@ export function useProfile(user: User) {
         title: "Error fetching profile",
         description: error.message,
         variant: "destructive",
+        duration: 3000,
       });
     }
   };
@@ -153,9 +157,8 @@ export function useProfile(user: User) {
   useEffect(() => {
     if (!hasLoaded) return;
 
-    // Skip the first debounce after loading
-    if (isInitialLoad.current) {
-      isInitialLoad.current = false;
+    if (skipNextUpdate.current) {
+      skipNextUpdate.current = false;
       return;
     }
 
