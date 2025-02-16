@@ -1,4 +1,3 @@
-import { supabase } from "@/integrations/supabase/client";
 
 export const countries = [
   { code: "US", name: "United States", continent: "North America" },
@@ -37,17 +36,6 @@ export const groupedCountries = countries.reduce((acc, country) => {
 Object.keys(groupedCountries).forEach(group => {
   groupedCountries[group].sort((a, b) => a.name.localeCompare(b.name));
 });
-
-export const detectUserCountry = async (): Promise<string> => {
-  try {
-    const { data, error } = await supabase.functions.invoke('detect-location');
-    if (error) throw error;
-    return data?.country || 'US';
-  } catch (error) {
-    console.error('Error detecting user country:', error);
-    return 'US';
-  }
-};
 
 export const timezones = [
   // North America (Common)
@@ -102,7 +90,3 @@ export const groupedTimezones = timezones.reduce((acc, tz) => {
 Object.keys(groupedTimezones).forEach(group => {
   groupedTimezones[group].sort((a, b) => a.label.localeCompare(b.label));
 });
-
-export const detectUserTimezone = (): string => {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone;
-};

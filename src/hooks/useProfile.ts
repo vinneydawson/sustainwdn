@@ -4,7 +4,6 @@ import { User } from "@supabase/supabase-js";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "use-debounce";
-import { detectUserCountry, detectUserTimezone } from "@/lib/profile-utils";
 
 export interface Profile {
   id: string;
@@ -23,8 +22,8 @@ export const DEFAULT_PROFILE = {
   first_name: "John",
   last_name: "Doe",
   phone_number: "(555) 555-5555",
-  country: "US",
-  timezone: detectUserTimezone(),
+  country: "",
+  timezone: "",
 };
 
 export function useProfile(user: User) {
@@ -90,8 +89,6 @@ export function useProfile(user: User) {
 
   const fetchProfile = async () => {
     try {
-      const detectedCountry = await detectUserCountry();
-      
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -115,7 +112,7 @@ export function useProfile(user: User) {
             first_name: DEFAULT_PROFILE.first_name,
             last_name: DEFAULT_PROFILE.last_name,
             phone_number: DEFAULT_PROFILE.phone_number,
-            country: detectedCountry,
+            country: DEFAULT_PROFILE.country,
             timezone: DEFAULT_PROFILE.timezone,
           })
           .select()
@@ -126,7 +123,7 @@ export function useProfile(user: User) {
         setFirstName(DEFAULT_PROFILE.first_name);
         setLastName(DEFAULT_PROFILE.last_name);
         setPhoneNumber(DEFAULT_PROFILE.phone_number);
-        setCountry(detectedCountry);
+        setCountry(DEFAULT_PROFILE.country);
         setTimezone(DEFAULT_PROFILE.timezone);
       }
       setHasLoaded(true);
