@@ -35,7 +35,13 @@ export function useProfile(user: User) {
   const [timezone, setTimezone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const initialLoadRef = useRef(true);
+  const previousValuesRef = useRef({
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    country: "",
+    timezone: "",
+  });
 
   const [debouncedFirstName] = useDebounce(firstName, 1000);
   const [debouncedLastName] = useDebounce(lastName, 1000);
@@ -114,6 +120,15 @@ export function useProfile(user: User) {
         setPhoneNumber(data.phone_number || "");
         setCountry(data.country || "");
         setTimezone(data.timezone || "");
+        
+        // Update previous values
+        previousValuesRef.current = {
+          firstName: data.first_name || "",
+          lastName: data.last_name || "",
+          phoneNumber: data.phone_number || "",
+          country: data.country || "",
+          timezone: data.timezone || "",
+        };
       } else {
         const { error: insertError } = await supabase
           .from("profiles")
@@ -135,6 +150,15 @@ export function useProfile(user: User) {
         setPhoneNumber(DEFAULT_PROFILE.phone_number);
         setCountry(DEFAULT_PROFILE.country);
         setTimezone(DEFAULT_PROFILE.timezone);
+        
+        // Update previous values with defaults
+        previousValuesRef.current = {
+          firstName: DEFAULT_PROFILE.first_name,
+          lastName: DEFAULT_PROFILE.last_name,
+          phoneNumber: DEFAULT_PROFILE.phone_number,
+          country: DEFAULT_PROFILE.country,
+          timezone: DEFAULT_PROFILE.timezone,
+        };
       }
       setHasLoaded(true);
     } catch (error: any) {
@@ -151,20 +175,23 @@ export function useProfile(user: User) {
   }, [user]);
 
   useEffect(() => {
-    if (!hasLoaded) return; // Don't trigger save on initial load
-    if (initialLoadRef.current) {
-      initialLoadRef.current = false;
-      return;
-    }
+    if (!hasLoaded) return;
     
     const valueChanged = 
-      debouncedFirstName !== profile?.first_name ||
-      debouncedLastName !== profile?.last_name ||
-      debouncedPhoneNumber !== profile?.phone_number ||
-      debouncedCountry !== profile?.country ||
-      debouncedTimezone !== profile?.timezone;
+      debouncedFirstName !== previousValuesRef.current.firstName ||
+      debouncedLastName !== previousValuesRef.current.lastName ||
+      debouncedPhoneNumber !== previousValuesRef.current.phoneNumber ||
+      debouncedCountry !== previousValuesRef.current.country ||
+      debouncedTimezone !== previousValuesRef.current.timezone;
 
     if (valueChanged) {
+      previousValuesRef.current = {
+        firstName: debouncedFirstName,
+        lastName: debouncedLastName,
+        phoneNumber: debouncedPhoneNumber,
+        country: debouncedCountry,
+        timezone: debouncedTimezone,
+      };
       handleSave(true);
     }
   }, [
