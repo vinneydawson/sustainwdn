@@ -45,7 +45,6 @@ export function JobDialog({
 }: JobDialogProps) {
   const [resources, setResources] = useState<ResourceLink[]>([]);
   const [certificates, setCertificates] = useState<ResourceLink[]>([]);
-  const [tasks, setTasks] = useState<string[]>([]);
   const [relatedJobs, setRelatedJobs] = useState<string[]>([]);
 
   const { register, handleSubmit, reset, setValue, watch } = useForm<JobFormData>({
@@ -58,9 +57,9 @@ export function JobDialog({
       certificates_degrees: initialData?.certificates_degrees || {
         education: [],
         certificates: [],
-        experience: [],
+        experience: "",
       },
-      tasks_responsibilities: initialData?.tasks_responsibilities || {},
+      tasks_responsibilities: initialData?.tasks_responsibilities?.task_1?.content || "",
       resources: initialData?.resources || [],
       related_jobs: initialData?.related_jobs || [],
       projections: initialData?.projections || "",
@@ -102,13 +101,6 @@ export function JobDialog({
         setCertificates([]);
       }
 
-      // Initialize tasks from initialData
-      if (initialData?.tasks_responsibilities) {
-        setTasks(Object.values(initialData.tasks_responsibilities).map(t => t.content));
-      } else {
-        setTasks([]);
-      }
-
       // Initialize related jobs from initialData
       if (initialData?.related_jobs) {
         setRelatedJobs(initialData.related_jobs.map(j => j.content));
@@ -125,9 +117,9 @@ export function JobDialog({
         certificates_degrees: initialData?.certificates_degrees || {
           education: [],
           certificates: [],
-          experience: [],
+          experience: "",
         },
-        tasks_responsibilities: initialData?.tasks_responsibilities || {},
+        tasks_responsibilities: initialData?.tasks_responsibilities?.task_1?.content || "",
         resources: initialData?.resources || [],
         related_jobs: initialData?.related_jobs || [],
         projections: initialData?.projections || "",
@@ -143,11 +135,10 @@ export function JobDialog({
     
     const formattedCertificates = certificates.map(c => `${c.url}|${c.text}`);
 
-    // Transform tasks into the required format
-    const formattedTasks = tasks.reduce((acc, task, index) => {
-      acc[`task_${index + 1}`] = { content: task };
-      return acc;
-    }, {} as Record<string, { content: string }>);
+    // Transform tasks into the required format (single task format)
+    const formattedTasks = {
+      task_1: { content: data.tasks_responsibilities }
+    };
 
     // Transform related jobs into the required format
     const formattedRelatedJobs = relatedJobs.map(job => ({
@@ -197,21 +188,6 @@ export function JobDialog({
     const updatedCertificates = [...certificates];
     updatedCertificates[index] = { ...updatedCertificates[index], [field]: value };
     setCertificates(updatedCertificates);
-  };
-
-  // Tasks management functions
-  const addTask = () => {
-    setTasks([...tasks, ""]);
-  };
-
-  const removeTask = (index: number) => {
-    setTasks(tasks.filter((_, i) => i !== index));
-  };
-
-  const updateTask = (index: number, value: string) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[index] = value;
-    setTasks(updatedTasks);
   };
 
   return (
@@ -287,38 +263,13 @@ export function JobDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label>Tasks + Responsibilities</Label>
-              <div className="space-y-4">
-                {tasks.map((task, index) => (
-                  <div key={index} className="flex gap-2 items-start">
-                    <div className="flex-1">
-                      <Textarea
-                        value={task}
-                        onChange={(e) => updateTask(index, e.target.value)}
-                        placeholder="Enter task..."
-                        className="min-h-[100px]"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => removeTask(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addTask}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Task
-                </Button>
-              </div>
+              <Label htmlFor="tasks_responsibilities">Tasks + Responsibilities</Label>
+              <Textarea
+                id="tasks_responsibilities"
+                {...register("tasks_responsibilities")}
+                placeholder="Enter tasks and responsibilities..."
+                className="min-h-[200px]"
+              />
             </div>
 
             <div className="grid gap-2">
@@ -376,7 +327,7 @@ export function JobDialog({
                 id="experience"
                 {...register("certificates_degrees.experience")}
                 placeholder="Enter required work experience..."
-                className="min-h-[100px]"
+                className="min-h-[200px]"
               />
             </div>
 
@@ -395,7 +346,7 @@ export function JobDialog({
                 id="projections"
                 {...register("projections")}
                 placeholder="Enter job projections..."
-                className="min-h-[100px]"
+                className="min-h-[200px]"
               />
             </div>
 
