@@ -70,6 +70,19 @@ const JobDetails = () => {
               ])
             )
           : null,
+        certificates_degrees: data.certificates_degrees
+          ? {
+              education: Array.isArray(data.certificates_degrees.education)
+                ? data.certificates_degrees.education
+                : [],
+              certificates: Array.isArray(data.certificates_degrees.certificates)
+                ? data.certificates_degrees.certificates
+                : [],
+              experience: Array.isArray(data.certificates_degrees.experience)
+                ? data.certificates_degrees.experience
+                : []
+            }
+          : null,
         career_pathways: transformedCareerPathway
       };
 

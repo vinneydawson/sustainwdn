@@ -55,7 +55,8 @@ const PathwayJobs = () => {
       let query = supabase
         .from("job_roles")
         .select("*")
-        .eq("pathway_id", pathwayId);
+        .eq("pathway_id", pathwayId)
+        .order('display_order', { ascending: true }); // Added ordering
       
       if (selectedLevel) {
         query = query.eq("level", selectedLevel);
@@ -72,6 +73,28 @@ const PathwayJobs = () => {
           : null,
         related_jobs: Array.isArray(job.related_jobs)
           ? job.related_jobs.map(rel => transformJsonToContent(rel))
+          : null,
+        tasks_responsibilities: job.tasks_responsibilities 
+          ? Object.fromEntries(
+              Object.entries(job.tasks_responsibilities).map(([key, value]) => [
+                key,
+                typeof value === 'string' ? { content: value } : value
+              ])
+            )
+          : null,
+        certificates_degrees: job.certificates_degrees
+          ? {
+              ...job.certificates_degrees,
+              education: Array.isArray(job.certificates_degrees.education) 
+                ? job.certificates_degrees.education 
+                : [],
+              certificates: Array.isArray(job.certificates_degrees.certificates)
+                ? job.certificates_degrees.certificates
+                : [],
+              experience: Array.isArray(job.certificates_degrees.experience)
+                ? job.certificates_degrees.experience
+                : []
+            }
           : null
       })) as JobRole[];
     },
