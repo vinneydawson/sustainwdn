@@ -3,8 +3,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { JobRole } from "@/types/job";
+import type { Json } from "@/integrations/supabase/types";
 
 export type JobFormData = Omit<JobRole, 'id' | 'created_at' | 'updated_at' | 'display_order' | 'career_pathways'>;
+
+function isJsonArray(value: Json): value is Json[] {
+  return Array.isArray(value);
+}
 
 export function useJobs() {
   const { toast } = useToast();
@@ -28,12 +33,12 @@ export function useJobs() {
         description: typeof job.description === 'string'
           ? { content: job.description }
           : job.description as { content: string },
-        resources: Array.isArray(job.resources)
-          ? job.resources.map(res => typeof res === 'string' ? { content: res } : res)
-          : (job.resources as { content: string }[] || []),
-        related_jobs: Array.isArray(job.related_jobs)
-          ? job.related_jobs.map(rel => typeof rel === 'string' ? { content: rel } : rel)
-          : (job.related_jobs as { content: string }[] || []),
+        resources: isJsonArray(job.resources)
+          ? job.resources.map(res => typeof res === 'string' ? { content: res } : res as { content: string })
+          : [],
+        related_jobs: isJsonArray(job.related_jobs)
+          ? job.related_jobs.map(rel => typeof rel === 'string' ? { content: rel } : rel as { content: string })
+          : [],
         tasks_responsibilities: job.tasks_responsibilities
           ? Object.fromEntries(
               Object.entries(job.tasks_responsibilities).map(([key, value]) => [
