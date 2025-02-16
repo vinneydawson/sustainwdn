@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -173,6 +174,7 @@ export function FileUploadSection({ user }: { user: User }) {
   const renderFilePreview = () => {
     if (!selectedFile) return null;
 
+    // For PDF files
     if (selectedFile.type === 'application/pdf') {
       return (
         <iframe
@@ -183,12 +185,31 @@ export function FileUploadSection({ user }: { user: User }) {
       );
     }
 
+    // For text files
     if (selectedFile.type === 'text/plain') {
       return (
         <iframe
           src={selectedFile.url}
           className="w-full h-[80vh]"
           title={selectedFile.name}
+        />
+      );
+    }
+
+    // For Microsoft Word documents (DOC and DOCX)
+    if (
+      selectedFile.type === 'application/msword' ||
+      selectedFile.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ) {
+      const encodedUrl = encodeURIComponent(selectedFile.url);
+      const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
+      
+      return (
+        <iframe
+          src={viewerUrl}
+          className="w-full h-[80vh]"
+          title={selectedFile.name}
+          frameBorder="0"
         />
       );
     }
