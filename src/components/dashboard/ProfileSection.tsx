@@ -11,6 +11,7 @@ import { useDebounce } from "use-debounce";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -352,7 +353,7 @@ export function ProfileSection({ user }: { user: User }) {
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(groupedTimezones).map(([group, zones]) => (
-                    <div key={group}>
+                    <SelectGroup key={group}>
                       <SelectLabel>{group}</SelectLabel>
                       {zones.map((tz) => (
                         <SelectItem key={tz.value} value={tz.value}>
@@ -360,7 +361,7 @@ export function ProfileSection({ user }: { user: User }) {
                         </SelectItem>
                       ))}
                       <SelectSeparator />
-                    </div>
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
