@@ -24,6 +24,16 @@ interface Profile {
   updated_at: string | null;
 }
 
+// Default placeholder values for empty profile fields
+const DEFAULT_PROFILE = {
+  first_name: "John",
+  last_name: "Doe",
+  phone_number: "(555) 555-5555",
+  country: "United States",
+  timezone: "Pacific Standard Time (PST)",
+  role: "Software Engineer",
+};
+
 export function ProfileSection({ user }: { user: User }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [firstName, setFirstName] = useState("");
@@ -74,20 +84,38 @@ export function ProfileSection({ user }: { user: User }) {
       
       if (data) {
         setProfile(data as Profile);
-        setFirstName(data.first_name || "");
-        setLastName(data.last_name || "");
-        setPhoneNumber(data.phone_number || "");
-        setCountry(data.country || "");
-        setTimezone(data.timezone || "");
-        setRole(data.role || "");
+        // Use data from profile or fall back to defaults if null/empty
+        setFirstName(data.first_name || DEFAULT_PROFILE.first_name);
+        setLastName(data.last_name || DEFAULT_PROFILE.last_name);
+        setPhoneNumber(data.phone_number || DEFAULT_PROFILE.phone_number);
+        setCountry(data.country || DEFAULT_PROFILE.country);
+        setTimezone(data.timezone || DEFAULT_PROFILE.timezone);
+        setRole(data.role || DEFAULT_PROFILE.role);
       } else {
+        // If no profile exists, create one with default values
         const { error: insertError } = await supabase
           .from("profiles")
-          .insert({ id: user.id })
+          .insert({
+            id: user.id,
+            first_name: DEFAULT_PROFILE.first_name,
+            last_name: DEFAULT_PROFILE.last_name,
+            phone_number: DEFAULT_PROFILE.phone_number,
+            country: DEFAULT_PROFILE.country,
+            timezone: DEFAULT_PROFILE.timezone,
+            role: DEFAULT_PROFILE.role,
+          })
           .select()
           .single();
 
         if (insertError) throw insertError;
+        
+        // Set state with default values
+        setFirstName(DEFAULT_PROFILE.first_name);
+        setLastName(DEFAULT_PROFILE.last_name);
+        setPhoneNumber(DEFAULT_PROFILE.phone_number);
+        setCountry(DEFAULT_PROFILE.country);
+        setTimezone(DEFAULT_PROFILE.timezone);
+        setRole(DEFAULT_PROFILE.role);
       }
     } catch (error: any) {
       toast({
@@ -209,13 +237,13 @@ export function ProfileSection({ user }: { user: User }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   id="firstName"
-                  placeholder="Vinney"
+                  placeholder={DEFAULT_PROFILE.first_name}
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                 />
                 <Input
                   id="lastName"
-                  placeholder="Dawson"
+                  placeholder={DEFAULT_PROFILE.last_name}
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                 />
@@ -245,7 +273,7 @@ export function ProfileSection({ user }: { user: User }) {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="(310) 200-8101"
+                  placeholder={DEFAULT_PROFILE.phone_number}
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   className="pl-9"
@@ -298,7 +326,7 @@ export function ProfileSection({ user }: { user: User }) {
               <Label htmlFor="role">Role</Label>
               <Input
                 id="role"
-                placeholder="Lead Designer"
+                placeholder={DEFAULT_PROFILE.role}
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
               />
@@ -308,7 +336,7 @@ export function ProfileSection({ user }: { user: User }) {
               <Label htmlFor="country">Country</Label>
               <Input
                 id="country"
-                placeholder="United States"
+                placeholder={DEFAULT_PROFILE.country}
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
               />
@@ -318,7 +346,7 @@ export function ProfileSection({ user }: { user: User }) {
               <Label htmlFor="timezone">Timezone</Label>
               <Input
                 id="timezone"
-                placeholder="Pacific Standard Time (PST)"
+                placeholder={DEFAULT_PROFILE.timezone}
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
               />
