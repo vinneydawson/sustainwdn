@@ -1,8 +1,8 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
-  text-align: center;
 }
 
 .logo {
@@ -39,4 +39,15 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Only center align text in the root container, not in children */
+#root > * {
+  text-align: left;
+}
+
+/* Preserve center alignment for specific components that need it */
+.read-the-docs,
+.logo-section {
+  text-align: center;
 }
