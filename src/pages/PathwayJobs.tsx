@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -44,14 +45,17 @@ const PathwayJobs = () => {
   const { pathwayId } = useParams();
   const [selectedLevel, setSelectedLevel] = useState<JobLevel | null>(null);
 
-  const { data: pathway } = useQuery({
+  const { data: pathway, isLoading: isLoadingPathway, error: pathwayError } = useQuery({
     queryKey: ["career-pathway", pathwayId],
     queryFn: async () => {
+      if (!pathwayId) throw new Error("No pathway ID provided");
+
       const { data: rawData, error } = await supabase
         .from("career_pathways")
         .select("*")
         .eq("id", pathwayId)
         .single();
+      
       if (error) throw error;
       
       const data = rawData as any;
@@ -69,11 +73,14 @@ const PathwayJobs = () => {
           : null
       } as CareerPathway;
     },
+    enabled: !!pathwayId,
   });
 
-  const { data: jobs, isLoading: isLoadingJobs } = useQuery({
+  const { data: jobs, isLoading: isLoadingJobs, error: jobsError } = useQuery({
     queryKey: ["pathway-jobs", pathwayId, selectedLevel],
     queryFn: async () => {
+      if (!pathwayId) throw new Error("No pathway ID provided");
+
       let query = supabase
         .from("job_roles")
         .select("*")
@@ -105,6 +112,7 @@ const PathwayJobs = () => {
           : null
       })) as JobRole[];
     },
+    enabled: !!pathwayId,
   });
 
   const levels: Array<{ id: JobLevel; label: string }> = [
@@ -113,11 +121,40 @@ const PathwayJobs = () => {
     { id: 'advanced', label: 'Advanced' }
   ];
 
-  if (isLoadingJobs) {
+  if (!pathwayId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8">Pathway not found</h1>
+          <Link to="/explore" className="text-primary-600 hover:text-primary-700">
+            Return to Explore
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoadingPathway || isLoadingJobs) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">Loading...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (pathwayError || jobsError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8">Error loading pathway</h1>
+          <p className="text-red-600 mb-4">
+            {pathwayError?.message || jobsError?.message}
+          </p>
+          <Link to="/explore" className="text-primary-600 hover:text-primary-700">
+            Return to Explore
+          </Link>
         </div>
       </div>
     );
@@ -162,12 +199,12 @@ const PathwayJobs = () => {
           {jobs?.map((job) => (
             <Card key={job.id} className="p-6 hover:shadow-lg transition-shadow">
               <h3 className="text-xl font-semibold mb-4">{job.title}</h3>
-              <p className="text-gray-600 mb-4">{job.description.content}</p>
-              <p className="text-sm text-primary-600 mb-4">
+              <p className="text-gray-600 mb-4 text-left">{job.description.content}</p>
+              <p className="text-sm text-primary-600 mb-4 text-left">
                 {job.level.charAt(0).toUpperCase() + job.level.slice(1)} Level
               </p>
               {job.salary && (
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-600 mb-4 text-left">
                   Salary: {job.salary}
                 </p>
               )}
