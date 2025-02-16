@@ -222,9 +222,20 @@ export function ProfileSection({ user }: { user: User }) {
       if (authError) throw authError;
 
       toast({
-        title: "Profile updated",
-        description: "Your changes have been saved.",
+        title: "Changes saved",
+        description: "Your profile has been updated.",
+        duration: 2000,
       });
+
+      setProfile(prev => prev ? {
+        ...prev,
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phoneNumber,
+        country: country,
+        timezone: timezone,
+        updated_at: new Date().toISOString(),
+      } : null);
 
       setHasChanges(false);
     } catch (error: any) {
