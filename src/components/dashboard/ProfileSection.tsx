@@ -9,6 +9,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Mail, Phone } from "lucide-react";
 import { useDebounce } from "use-debounce";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { countries, timezones, detectUserTimezone } from "@/lib/profile-utils";
 
 interface Profile {
   id: string;
@@ -19,7 +27,6 @@ interface Profile {
   phone_number: string | null;
   country: string | null;
   timezone: string | null;
-  role: string | null;
   resume_url: string | null;
   updated_at: string | null;
 }
@@ -29,9 +36,8 @@ const DEFAULT_PROFILE = {
   first_name: "John",
   last_name: "Doe",
   phone_number: "(555) 555-5555",
-  country: "United States",
-  timezone: "Pacific Standard Time (PST)",
-  role: "Software Engineer",
+  country: "US",
+  timezone: detectUserTimezone(),
 };
 
 export function ProfileSection({ user }: { user: User }) {
@@ -41,7 +47,6 @@ export function ProfileSection({ user }: { user: User }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [country, setCountry] = useState("");
   const [timezone, setTimezone] = useState("");
-  const [role, setRole] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -52,7 +57,6 @@ export function ProfileSection({ user }: { user: User }) {
   const [debouncedPhoneNumber] = useDebounce(phoneNumber, 1000);
   const [debouncedCountry] = useDebounce(country, 1000);
   const [debouncedTimezone] = useDebounce(timezone, 1000);
-  const [debouncedRole] = useDebounce(role, 1000);
 
   useEffect(() => {
     fetchProfile();
@@ -69,7 +73,6 @@ export function ProfileSection({ user }: { user: User }) {
     debouncedPhoneNumber,
     debouncedCountry,
     debouncedTimezone,
-    debouncedRole,
   ]);
 
   async function fetchProfile() {
@@ -90,7 +93,6 @@ export function ProfileSection({ user }: { user: User }) {
         setPhoneNumber(data.phone_number || DEFAULT_PROFILE.phone_number);
         setCountry(data.country || DEFAULT_PROFILE.country);
         setTimezone(data.timezone || DEFAULT_PROFILE.timezone);
-        setRole(data.role || DEFAULT_PROFILE.role);
       } else {
         // If no profile exists, create one with default values
         const { error: insertError } = await supabase
@@ -102,7 +104,6 @@ export function ProfileSection({ user }: { user: User }) {
             phone_number: DEFAULT_PROFILE.phone_number,
             country: DEFAULT_PROFILE.country,
             timezone: DEFAULT_PROFILE.timezone,
-            role: DEFAULT_PROFILE.role,
           })
           .select()
           .single();
@@ -115,7 +116,6 @@ export function ProfileSection({ user }: { user: User }) {
         setPhoneNumber(DEFAULT_PROFILE.phone_number);
         setCountry(DEFAULT_PROFILE.country);
         setTimezone(DEFAULT_PROFILE.timezone);
-        setRole(DEFAULT_PROFILE.role);
       }
     } catch (error: any) {
       toast({
@@ -163,6 +163,11 @@ export function ProfileSection({ user }: { user: User }) {
             updated_at: new Date().toISOString(),
           });
 
+        // Update user metadata in auth.users
+        await supabase.auth.updateUser({
+          data: { avatar_url: publicUrl }
+        });
+
         toast({
           title: "Avatar updated",
           description: "Your profile picture has been updated successfully.",
@@ -185,7 +190,8 @@ export function ProfileSection({ user }: { user: User }) {
     try {
       setIsLoading(true);
 
-      const { error } = await supabase
+      // Update profile in profiles table
+      const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
@@ -194,11 +200,20 @@ export function ProfileSection({ user }: { user: User }) {
           phone_number: phoneNumber,
           country: country,
           timezone: timezone,
-          role: role,
           updated_at: new Date().toISOString(),
         });
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Update user metadata in auth.users
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+        }
+      });
+
+      if (authError) throw authError;
 
       toast({
         title: "Profile updated",
@@ -323,33 +338,35 @@ export function ProfileSection({ user }: { user: User }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
-              <Label htmlFor="role">Role</Label>
-              <Input
-                id="role"
-                placeholder={DEFAULT_PROFILE.role}
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <Label htmlFor="country">Country</Label>
-              <Input
-                id="country"
-                placeholder={DEFAULT_PROFILE.country}
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-              />
+              <Select value={country} onValueChange={setCountry}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <Label htmlFor="timezone">Timezone</Label>
-              <Input
-                id="timezone"
-                placeholder={DEFAULT_PROFILE.timezone}
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-              />
+              <Select value={timezone} onValueChange={setTimezone}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a timezone" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timezones.map((tz) => (
+                    <SelectItem key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
