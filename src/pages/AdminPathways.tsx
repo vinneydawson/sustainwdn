@@ -50,7 +50,9 @@ const AdminPathways = () => {
               <BookOpen className="h-8 w-8 text-primary-600" />
               <h1 className="text-4xl font-bold text-gray-900 text-left">Career Pathways</h1>
             </div>
-            <Button>Add Pathway</Button>
+            <Button variant="default" className="bg-primary-600 hover:bg-primary-700">
+              Add Pathway
+            </Button>
           </div>
 
           <Card className="p-6">
