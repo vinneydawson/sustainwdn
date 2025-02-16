@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -157,12 +156,10 @@ export function ProfileSection({ user }: { user: User }) {
   };
 
   return (
-    <div className="max-w-[800px] mx-auto">
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-semibold">Settings</h1>
-        </div>
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-2xl font-bold mb-6">Settings</h2>
 
+      <div className="space-y-8">
         <div className="space-y-6">
           <div>
             <h2 className="text-lg font-medium">Personal info</h2>
