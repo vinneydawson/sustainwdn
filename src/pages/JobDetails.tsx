@@ -40,25 +40,28 @@ const JobDetails = () => {
   const { data: job, isLoading: isLoadingJob, error } = useQuery({
     queryKey: ["job-role", jobId],
     queryFn: async () => {
-      if (!jobId) return null;
+      if (!jobId) {
+        console.error("No jobId provided");
+        return null;
+      }
 
       console.log("Fetching job with ID:", jobId);
       
       try {
-        const { data: rawData, error } = await supabase
+        const { data: rawData, error: fetchError } = await supabase
           .from("job_roles")
           .select(`
             *,
             career_pathways (*)
           `)
-          .eq("id", jobId)
-          .maybeSingle();
-        
-        if (error) {
-          console.error("Supabase error:", error);
-          throw error;
+          .eq('id', jobId)
+          .single();
+
+        if (fetchError) {
+          console.error("Error fetching job:", fetchError);
+          throw fetchError;
         }
-        
+
         if (!rawData) {
           console.log("No job found with ID:", jobId);
           return null;
@@ -102,16 +105,26 @@ const JobDetails = () => {
         console.log("Transformed job data:", transformedJob);
         return transformedJob as JobRole;
       } catch (error) {
-        console.error("Error fetching job:", error);
+        console.error("Error in job query:", error);
         throw error;
       }
     },
     retry: 3,
     retryDelay: 1000,
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep cached data for 30 minutes (formerly cacheTime)
+    gcTime: 1000 * 60 * 30, // Keep cached data for 30 minutes
     enabled: !!jobId,
   });
+
+  if (isLoadingJob) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8">Loading...</h1>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     console.error("Query error:", error);
@@ -123,16 +136,6 @@ const JobDetails = () => {
           <Button variant="default" onClick={() => navigate("/explore")}>
             Back to Explore
           </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoadingJob) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
-        <div className="container mx-auto px-4 py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8">Loading...</h1>
         </div>
       </div>
     );
