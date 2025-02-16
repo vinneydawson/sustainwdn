@@ -17,9 +17,19 @@ export function OverviewMetrics() {
       const { data, error } = await supabase
         .from('user_progress')
         .select('resources_completed, achievements_count, pathway_progress')
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      
+      // If no data found, return default values
+      if (!data) {
+        return {
+          resources_completed: 0,
+          achievements_count: 0,
+          pathway_progress: 0
+        };
+      }
+
       return data as UserProgress;
     },
   });
