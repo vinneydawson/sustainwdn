@@ -23,10 +23,11 @@ interface TasksResponsibilities {
   };
 }
 
-interface CertificatesDegrees {
+interface CertificatesDegreesData {
   education: string[];
   certificates: string[];
   experience: string[];
+  [key: string]: Json;
 }
 
 const transformContent = (value: any): { content: string } => {
@@ -43,7 +44,7 @@ const parseTasksList = (tasks: string): string[] => {
   return tasks.split('\n').filter(task => task.trim().length > 0);
 };
 
-const isCertificatesDegrees = (value: Json | null): value is CertificatesDegrees => {
+const isCertificatesDegrees = (value: Json | null): value is CertificatesDegreesData => {
   if (!value || typeof value !== 'object') return false;
   const certDegrees = value as any;
   return (
