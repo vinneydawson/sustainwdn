@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface ImageCropperProps {
   imageUrl: string;
@@ -28,6 +28,24 @@ export function ImageCropper({
     y: 5
   });
   const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null);
+
+  const onImageLoad = (image: HTMLImageElement) => {
+    setImageRef(image);
+    
+    // Set initial centered crop
+    const width = Math.min(90, (image.width / image.height) * 90);
+    const height = Math.min(90, (image.height / image.width) * 90);
+    const x = (100 - width) / 2;
+    const y = (100 - height) / 2;
+    
+    setCrop({
+      unit: '%',
+      width,
+      height,
+      x,
+      y
+    });
+  };
 
   const getCroppedImg = () => {
     if (!imageRef) return;
@@ -66,6 +84,9 @@ export function ImageCropper({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Crop your photo</DialogTitle>
+          <DialogDescription>
+            Drag the crop area to adjust your profile photo, or leave it as is to use the default crop.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center gap-4">
           <ReactCrop
@@ -75,10 +96,11 @@ export function ImageCropper({
             circularCrop
           >
             <img
-              ref={(ref) => setImageRef(ref)}
+              ref={setImageRef}
               src={imageUrl}
               alt="Crop me"
               className="max-h-[60vh] object-contain"
+              onLoad={(e) => onImageLoad(e.currentTarget)}
             />
           </ReactCrop>
           <div className="flex justify-end gap-2 w-full">
