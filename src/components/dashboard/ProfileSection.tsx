@@ -18,7 +18,7 @@ import {
   SelectLabel,
   SelectSeparator,
 } from "@/components/ui/select";
-import { countries, timezones, detectUserTimezone, groupedTimezones } from "@/lib/profile-utils";
+import { countries, timezones, detectUserTimezone, groupedTimezones, groupedCountries, detectUserCountry } from "@/lib/profile-utils";
 
 interface Profile {
   id: string;
@@ -332,14 +332,20 @@ export function ProfileSection({ user }: { user: User }) {
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <Label htmlFor="country">Country</Label>
               <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a country" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countries.map((country) => (
-                    <SelectItem key={country.code} value={country.code}>
-                      {country.name}
-                    </SelectItem>
+                  {Object.entries(groupedCountries).map(([group, countryList]) => (
+                    <SelectGroup key={group}>
+                      <SelectLabel>{group}</SelectLabel>
+                      {countryList.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                      <SelectSeparator />
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
@@ -372,3 +378,58 @@ export function ProfileSection({ user }: { user: User }) {
     </div>
   );
 }
+
+// Update the useEffect for initial profile fetch to include country detection
+useEffect(() => {
+  const initializeProfile = async () => {
+    try {
+      const detectedCountry = await detectUserCountry();
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      if (data) {
+        setProfile(data as Profile);
+        setFirstName(data.first_name || DEFAULT_PROFILE.first_name);
+        setLastName(data.last_name || DEFAULT_PROFILE.last_name);
+        setPhoneNumber(data.phone_number || DEFAULT_PROFILE.phone_number);
+        setCountry(data.country || detectedCountry);
+        setTimezone(data.timezone || DEFAULT_PROFILE.timezone);
+      } else {
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id,
+            first_name: DEFAULT_PROFILE.first_name,
+            last_name: DEFAULT_PROFILE.last_name,
+            phone_number: DEFAULT_PROFILE.phone_number,
+            country: detectedCountry,
+            timezone: DEFAULT_PROFILE.timezone,
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        
+        setFirstName(DEFAULT_PROFILE.first_name);
+        setLastName(DEFAULT_PROFILE.last_name);
+        setPhoneNumber(DEFAULT_PROFILE.phone_number);
+        setCountry(detectedCountry);
+        setTimezone(DEFAULT_PROFILE.timezone);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error fetching profile",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  initializeProfile();
+}, [user]);
