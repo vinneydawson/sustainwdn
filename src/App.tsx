@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
+import JobDetails from "./pages/JobDetails"; // Add this import
 import Resources from "./pages/Resources";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -36,6 +37,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/explore" element={<Explore />} />
+              <Route path="/explore/:jobId" element={<JobDetails />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/auth" element={<Auth />} />
