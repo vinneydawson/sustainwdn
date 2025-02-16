@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Plus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,20 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePathways } from "@/hooks/use-pathways";
-import type { JobRole } from "@/types/job";
-import type { JobFormData } from "@/hooks/use-jobs";
-
-interface JobDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (data: JobFormData) => void;
-  initialData?: JobRole;
-}
-
-interface ResourceLink {
-  url: string;
-  text: string;
-}
+import { ResourceSection } from "./job-dialog/ResourceSection";
+import { getInitialFormValues, initializeResources, formatFormData } from "./job-dialog/utils";
+import type { JobDialogProps, ResourceLink } from "./job-dialog/types";
 
 export function JobDialog({
   open,
@@ -47,148 +35,38 @@ export function JobDialog({
   const [certificates, setCertificates] = useState<ResourceLink[]>([]);
   const [relatedJobs, setRelatedJobs] = useState<string[]>([]);
 
-  const { register, handleSubmit, reset, setValue, watch } = useForm<JobFormData>({
-    defaultValues: {
-      title: initialData?.title || "",
-      description: initialData?.description || { content: "" },
-      level: initialData?.level || "entry",
-      pathway_id: initialData?.pathway_id || "",
-      salary: initialData?.salary || "",
-      certificates_degrees: initialData?.certificates_degrees || {
-        education: [],
-        certificates: [],
-        experience: [],
-      },
-      tasks_responsibilities: initialData?.tasks_responsibilities || { task_1: { content: "" } },
-      resources: initialData?.resources || [],
-      related_jobs: initialData?.related_jobs || [],
-      projections: initialData?.projections || "",
-    },
+  const { register, handleSubmit, reset, setValue, watch } = useForm({
+    defaultValues: getInitialFormValues(initialData),
   });
+
+  const { pathways } = usePathways();
+  const selectedPathwayId = watch("pathway_id");
 
   useEffect(() => {
     if (open) {
-      // Initialize resources from initialData
-      if (initialData?.resources) {
-        const parsedResources = initialData.resources.map(r => {
-          try {
-            const parts = r.content.split('|');
-            return { url: parts[0], text: parts[1] || parts[0] };
-          } catch {
-            return { url: r.content, text: r.content };
-          }
-        });
-        setResources(parsedResources);
-      } else {
-        setResources([]);
-      }
-
-      // Initialize certificates from initialData
-      if (initialData?.certificates_degrees?.certificates) {
-        const parsedCertificates = initialData.certificates_degrees.certificates.map(c => {
-          try {
-            const parts = c.split('|');
-            return { url: parts[0], text: parts[1] || parts[0] };
-          } catch {
-            return { url: c, text: c };
-          }
-        });
-        setCertificates(parsedCertificates);
-      } else {
-        setCertificates([]);
-      }
-
-      // Initialize related jobs from initialData
-      if (initialData?.related_jobs) {
-        setRelatedJobs(initialData.related_jobs.map(j => j.content));
-      } else {
-        setRelatedJobs([]);
-      }
-
-      reset({
-        title: initialData?.title || "",
-        description: initialData?.description || { content: "" },
-        level: initialData?.level || "entry",
-        pathway_id: initialData?.pathway_id || "",
-        salary: initialData?.salary || "",
-        certificates_degrees: initialData?.certificates_degrees || {
-          education: [],
-          certificates: [],
-          experience: [],
-        },
-        tasks_responsibilities: initialData?.tasks_responsibilities || { task_1: { content: "" } },
-        resources: initialData?.resources || [],
-        related_jobs: initialData?.related_jobs || [],
-        projections: initialData?.projections || "",
-      });
+      setResources(initializeResources(initialData?.resources));
+      setCertificates(initializeResources(initialData?.certificates_degrees?.certificates?.map(c => ({ content: c }))));
+      setRelatedJobs(initialData?.related_jobs?.map(j => j.content) || []);
+      reset(getInitialFormValues(initialData));
     }
   }, [open, initialData, reset]);
 
-  const handleFormSubmit = (data: JobFormData) => {
-    // Transform resources and certificates into the required format
-    const formattedResources = resources.map(r => ({
-      content: `${r.url}|${r.text}`
-    }));
-    
-    const formattedCertificates = certificates.map(c => `${c.url}|${c.text}`);
-
-    // Transform tasks into the required format
-    const taskContent = watch("tasks_responsibilities.task_1.content") || "";
-    const formattedTasks = {
-      task_1: { content: taskContent }
-    };
-
-    // Transform experience into array format
-    const experienceContent = watch("certificates_degrees.experience") || [];
-    const formattedExperience = Array.isArray(experienceContent) 
-      ? experienceContent 
-      : [experienceContent];
-
-    // Transform related jobs into the required format
-    const formattedRelatedJobs = relatedJobs.map(job => ({
-      content: job
-    }));
-
-    const updatedData = {
-      ...data,
-      resources: formattedResources,
-      tasks_responsibilities: formattedTasks,
-      related_jobs: formattedRelatedJobs,
-      certificates_degrees: {
-        ...data.certificates_degrees,
-        certificates: formattedCertificates,
-        experience: formattedExperience,
-      }
-    };
-
-    onSubmit(updatedData);
+  const handleFormSubmit = (data: any) => {
+    const formattedData = formatFormData(data, resources, certificates, relatedJobs);
+    onSubmit(formattedData);
     onOpenChange(false);
   };
 
-  // Resource management functions
-  const addResource = () => {
-    setResources([...resources, { url: "", text: "" }]);
-  };
-
-  const removeResource = (index: number) => {
-    setResources(resources.filter((_, i) => i !== index));
-  };
-
+  const addResource = () => setResources([...resources, { url: "", text: "" }]);
+  const removeResource = (index: number) => setResources(resources.filter((_, i) => i !== index));
   const updateResource = (index: number, field: keyof ResourceLink, value: string) => {
     const updatedResources = [...resources];
     updatedResources[index] = { ...updatedResources[index], [field]: value };
     setResources(updatedResources);
   };
 
-  // Certificate management functions
-  const addCertificate = () => {
-    setCertificates([...certificates, { url: "", text: "" }]);
-  };
-
-  const removeCertificate = (index: number) => {
-    setCertificates(certificates.filter((_, i) => i !== index));
-  };
-
+  const addCertificate = () => setCertificates([...certificates, { url: "", text: "" }]);
+  const removeCertificate = (index: number) => setCertificates(certificates.filter((_, i) => i !== index));
   const updateCertificate = (index: number, field: keyof ResourceLink, value: string) => {
     const updatedCertificates = [...certificates];
     updatedCertificates[index] = { ...updatedCertificates[index], [field]: value };
@@ -287,44 +165,13 @@ export function JobDialog({
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Certificates</Label>
-              <div className="space-y-4">
-                {certificates.map((certificate, index) => (
-                  <div key={index} className="flex gap-2 items-start">
-                    <div className="flex-1 space-y-2">
-                      <Input
-                        placeholder="URL"
-                        value={certificate.url}
-                        onChange={(e) => updateCertificate(index, 'url', e.target.value)}
-                      />
-                      <Input
-                        placeholder="Display Text"
-                        value={certificate.text}
-                        onChange={(e) => updateCertificate(index, 'text', e.target.value)}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => removeCertificate(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addCertificate}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Certificate
-                </Button>
-              </div>
-            </div>
+            <ResourceSection
+              title="Certificates"
+              resources={certificates}
+              onAdd={addCertificate}
+              onRemove={removeCertificate}
+              onUpdate={updateCertificate}
+            />
 
             <div className="grid gap-2">
               <Label htmlFor="experience">Work Experience</Label>
@@ -355,44 +202,13 @@ export function JobDialog({
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Resources</Label>
-              <div className="space-y-4">
-                {resources.map((resource, index) => (
-                  <div key={index} className="flex gap-2 items-start">
-                    <div className="flex-1 space-y-2">
-                      <Input
-                        placeholder="URL"
-                        value={resource.url}
-                        onChange={(e) => updateResource(index, 'url', e.target.value)}
-                      />
-                      <Input
-                        placeholder="Display Text"
-                        value={resource.text}
-                        onChange={(e) => updateResource(index, 'text', e.target.value)}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => removeResource(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addResource}
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Resource
-                </Button>
-              </div>
-            </div>
+            <ResourceSection
+              title="Resources"
+              resources={resources}
+              onAdd={addResource}
+              onRemove={removeResource}
+              onUpdate={updateResource}
+            />
 
             <div className="grid gap-2">
               <Label htmlFor="related_jobs">Other Related Jobs</Label>
