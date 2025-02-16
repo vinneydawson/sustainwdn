@@ -308,7 +308,7 @@ export function ProfileSection({ user }: { user: User }) {
           <Button
             onClick={handleSave}
             disabled={isLoading}
-            className="bg-primary text-white"
+            className="bg-primary-600 hover:bg-primary-700 text-white"
           >
             {isLoading ? "Saving..." : "Save"}
           </Button>
