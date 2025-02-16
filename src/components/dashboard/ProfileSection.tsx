@@ -64,6 +64,43 @@ export function ProfileSection({ user }: { user: User }) {
     fetchProfile();
   }, [user]);
 
+  // New effect to handle initial load completion
+  useEffect(() => {
+    if (!profile || !isInitialLoad) return;
+
+    const currentValues = {
+      first_name: debouncedFirstName,
+      last_name: debouncedLastName,
+      phone_number: debouncedPhoneNumber,
+      country: debouncedCountry,
+      timezone: debouncedTimezone,
+    };
+
+    const originalValues = {
+      first_name: profile.first_name || DEFAULT_PROFILE.first_name,
+      last_name: profile.last_name || DEFAULT_PROFILE.last_name,
+      phone_number: profile.phone_number || DEFAULT_PROFILE.phone_number,
+      country: profile.country || DEFAULT_PROFILE.country,
+      timezone: profile.timezone || DEFAULT_PROFILE.timezone,
+    };
+
+    // Check if all debounced values match the profile values
+    const valuesMatch = Object.keys(currentValues).every(
+      key => currentValues[key as keyof typeof currentValues] === originalValues[key as keyof typeof originalValues]
+    );
+
+    if (valuesMatch) {
+      setIsInitialLoad(false);
+    }
+  }, [
+    profile,
+    debouncedFirstName,
+    debouncedLastName,
+    debouncedPhoneNumber,
+    debouncedCountry,
+    debouncedTimezone,
+  ]);
+
   useEffect(() => {
     if (!profile || isInitialLoad) return;
 
@@ -137,9 +174,6 @@ export function ProfileSection({ user }: { user: User }) {
         setCountry(DEFAULT_PROFILE.country);
         setTimezone(DEFAULT_PROFILE.timezone);
       }
-
-      // Mark initial load as complete after setting all values
-      setIsInitialLoad(false);
     } catch (error: any) {
       toast({
         title: "Error fetching profile",
