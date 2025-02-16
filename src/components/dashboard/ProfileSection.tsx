@@ -157,12 +157,11 @@ export function ProfileSection({ user }: { user: User }) {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-2xl font-bold mb-6">Settings</h2>
+      <h2 className="text-2xl font-bold mb-6">Profile Information</h2>
 
       <div className="space-y-8">
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-medium">Personal info</h2>
             <p className="text-sm text-gray-500">
               Update your photo and personal details here.
             </p>
