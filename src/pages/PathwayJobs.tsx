@@ -14,16 +14,27 @@ interface JobRole {
   pathway_id: string;
   title: string;
   description: string;
-  level: JobLevel;
+  level: string;
   salary: string | null;
+  certificates_degrees: any | null;
+  tasks_responsibilities: any | null;
+  licenses: string[] | null;
+  job_projections: string[] | null;
+  resources: string[] | null;
+  related_jobs: string[] | null;
+  projections: string | null;
 }
 
 interface CareerPathway {
   id: string;
   title: string;
   description: string;
-  level: string;
   icon: string;
+  created_at: string;
+  updated_at: string;
+  requirements: string[] | null;
+  salary_range: string | null;
+  skills: string[] | null;
 }
 
 const PathwayJobs = () => {
@@ -92,7 +103,6 @@ const PathwayJobs = () => {
           {pathway?.description}
         </p>
 
-        {/* Filter buttons */}
         <div className="flex flex-wrap gap-4 mb-8">
           <Button
             variant={selectedLevel === null ? "outline" : "outline"}
@@ -113,7 +123,6 @@ const PathwayJobs = () => {
           ))}
         </div>
 
-        {/* Job Roles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs?.map((job) => (
             <Card key={job.id} className="p-6 hover:shadow-lg transition-shadow">

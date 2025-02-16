@@ -11,14 +11,14 @@ interface JobRole {
   title: string;
   description: string;
   level: string;
-  tasks: string[] | null;
-  education: string[] | null;
-  certificates: string[] | null;
-  experience: string[] | null;
-  salary: string | null;
-  projections: string | null;
+  certificates_degrees: any | null;
+  tasks_responsibilities: any | null;
+  licenses: string[] | null;
+  job_projections: string[] | null;
   resources: string[] | null;
   related_jobs: string[] | null;
+  salary: string | null;
+  projections: string | null;
   career_pathways: CareerPathway;
 }
 
@@ -26,8 +26,12 @@ interface CareerPathway {
   id: string;
   title: string;
   description: string;
-  level: string;
   icon: string;
+  created_at: string;
+  updated_at: string;
+  requirements: string[] | null;
+  salary_range: string | null;
+  skills: string[] | null;
 }
 
 const JobDetails = () => {
@@ -74,6 +78,11 @@ const JobDetails = () => {
     );
   }
 
+  const tasks = job.tasks_responsibilities ? Object.values(job.tasks_responsibilities) : [];
+  const education = job.certificates_degrees?.education || [];
+  const certificates = job.certificates_degrees?.certificates || [];
+  const experience = job.certificates_degrees?.experience || [];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
       <div className="container mx-auto px-4 py-12">
@@ -97,44 +106,44 @@ const JobDetails = () => {
               <p className="text-gray-600">{job.description}</p>
             </section>
 
-            {job.tasks && job.tasks.length > 0 && (
+            {tasks.length > 0 && (
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Tasks + Responsibilities</h2>
                 <ul className="list-disc pl-6 space-y-2">
-                  {job.tasks.map((task, index) => (
+                  {tasks.map((task, index) => (
                     <li key={index} className="text-gray-600">{task}</li>
                   ))}
                 </ul>
               </section>
             )}
 
-            {job.education && job.education.length > 0 && (
+            {education.length > 0 && (
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Education</h2>
                 <ul className="list-disc pl-6 space-y-2">
-                  {job.education.map((edu, index) => (
+                  {education.map((edu: string, index: number) => (
                     <li key={index} className="text-gray-600">{edu}</li>
                   ))}
                 </ul>
               </section>
             )}
 
-            {job.certificates && job.certificates.length > 0 && (
+            {certificates.length > 0 && (
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Certificates & Degrees</h2>
                 <ul className="list-disc pl-6 space-y-2">
-                  {job.certificates.map((cert, index) => (
+                  {certificates.map((cert: string, index: number) => (
                     <li key={index} className="text-gray-600">{cert}</li>
                   ))}
                 </ul>
               </section>
             )}
 
-            {job.experience && job.experience.length > 0 && (
+            {experience.length > 0 && (
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Work Experience</h2>
                 <ul className="list-disc pl-6 space-y-2">
-                  {job.experience.map((exp, index) => (
+                  {experience.map((exp: string, index: number) => (
                     <li key={index} className="text-gray-600">{exp}</li>
                   ))}
                 </ul>

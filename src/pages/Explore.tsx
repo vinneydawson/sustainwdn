@@ -6,7 +6,7 @@ import { Fish, Wind, Banknote, Cpu, Droplet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
-const iconMap: { [key: string]: React.ComponentType } = {
+const iconMap = {
   Fish,
   Wind,
   Banknote,
@@ -19,6 +19,11 @@ interface CareerPathway {
   title: string;
   description: string;
   icon: string;
+  created_at: string;
+  updated_at: string;
+  requirements: string[] | null;
+  salary_range: string | null;
+  skills: string[] | null;
 }
 
 const Explore = () => {
@@ -55,7 +60,7 @@ const Explore = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pathways?.map((pathway) => {
-            const IconComponent = iconMap[pathway.icon];
+            const IconComponent = iconMap[pathway.icon as keyof typeof iconMap];
             return (
               <Card key={pathway.id} className="p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-4 mb-4">
