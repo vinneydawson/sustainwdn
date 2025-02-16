@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LayoutDashboard, User, File } from "lucide-react";
@@ -36,16 +37,25 @@ const Dashboard = () => {
         </h1>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-3 lg:w-[400px] bg-neutral-100">
+            <TabsTrigger 
+              value="overview" 
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-gray-900"
+            >
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="profile" 
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-gray-900"
+            >
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="files" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="files" 
+              className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-gray-900"
+            >
               <File className="h-4 w-4" />
               <span className="hidden sm:inline">My Files</span>
             </TabsTrigger>
