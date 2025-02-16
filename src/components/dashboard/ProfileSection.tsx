@@ -50,6 +50,7 @@ export function ProfileSection({ user }: { user: User }) {
   const [timezone, setTimezone] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
   const { toast } = useToast();
 
   const [debouncedFirstName] = useDebounce(firstName, 1000);
@@ -63,7 +64,18 @@ export function ProfileSection({ user }: { user: User }) {
   }, [user]);
 
   useEffect(() => {
-    if (profile) {
+    if (!profile) return;
+
+    const hasProfileChanges = 
+      debouncedFirstName !== (profile.first_name || DEFAULT_PROFILE.first_name) ||
+      debouncedLastName !== (profile.last_name || DEFAULT_PROFILE.last_name) ||
+      debouncedPhoneNumber !== (profile.phone_number || DEFAULT_PROFILE.phone_number) ||
+      debouncedCountry !== (profile.country || DEFAULT_PROFILE.country) ||
+      debouncedTimezone !== (profile.timezone || DEFAULT_PROFILE.timezone);
+
+    setHasChanges(hasProfileChanges);
+
+    if (hasProfileChanges) {
       handleSave();
     }
   }, [
@@ -181,6 +193,8 @@ export function ProfileSection({ user }: { user: User }) {
   };
 
   const handleSave = async () => {
+    if (!hasChanges) return;
+    
     try {
       setIsLoading(true);
 
@@ -212,7 +226,7 @@ export function ProfileSection({ user }: { user: User }) {
         description: "Your changes have been saved.",
       });
 
-      fetchProfile();
+      setHasChanges(false);
     } catch (error: any) {
       toast({
         title: "Error updating profile",
