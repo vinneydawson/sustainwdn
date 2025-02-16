@@ -13,6 +13,7 @@ import Dashboard from "@/pages/Dashboard";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminUsers from "@/pages/AdminUsers";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

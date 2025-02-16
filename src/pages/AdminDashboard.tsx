@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { LayoutDashboard, BookOpen, Briefcase } from "lucide-react";
+import { LayoutDashboard, BookOpen, Briefcase, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 
@@ -17,6 +17,12 @@ const AdminDashboard = () => {
       description: "Manage job roles and their details",
       icon: Briefcase,
       href: "/admin/jobs"
+    },
+    {
+      title: "User Management",
+      description: "Manage user roles and permissions",
+      icon: Users,
+      href: "/admin/users"
     }
   ];
 
