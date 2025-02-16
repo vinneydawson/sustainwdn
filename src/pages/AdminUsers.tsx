@@ -1,9 +1,10 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Users } from "lucide-react";
+import { Users, ChevronLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -117,6 +118,15 @@ const AdminUsers = () => {
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         <div className="container mx-auto px-4 py-12">
+          <div className="flex items-center mb-4">
+            <Link to="/admin">
+              <Button variant="ghost" className="mr-4">
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Back to Dashboard
+              </Button>
+            </Link>
+          </div>
+
           <div className="flex items-center gap-3 mb-8">
             <Users className="h-8 w-8 text-primary-600" />
             <h1 className="text-4xl font-bold text-gray-900">User Management</h1>
