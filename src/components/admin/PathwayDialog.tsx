@@ -52,11 +52,18 @@ export function PathwayDialog({
   }, [open, initialData, reset]);
 
   const handleFormSubmit = (data: any) => {
-    // Convert comma-separated skills string to array and trim whitespace
+    // Convert skills to array, handling both string and array inputs
+    const skillsArray = typeof data.skills === 'string' 
+      ? data.skills.split(',').map((skill: string) => skill.trim()).filter(Boolean)
+      : Array.isArray(data.skills) 
+        ? data.skills 
+        : [];
+
     const formattedData = {
       ...data,
-      skills: data.skills ? data.skills.split(",").map((skill: string) => skill.trim()).filter(Boolean) : [],
+      skills: skillsArray,
     };
+    
     onSubmit(formattedData);
     onOpenChange(false);
   };
