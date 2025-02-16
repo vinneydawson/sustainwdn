@@ -1,12 +1,12 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
-import { Target, BookOpen, Award, LayoutDashboard, User, File } from "lucide-react";
+import { LayoutDashboard, User, File } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileSection } from "@/components/dashboard/ProfileSection";
 import { FileUploadSection } from "@/components/dashboard/FileUploadSection";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { OverviewMetrics } from "@/components/dashboard/OverviewMetrics";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -53,35 +53,7 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="p-6">
-                <div className="text-primary-600 mb-4">
-                  <Target className="h-8 w-8" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Progress</h3>
-                <p className="text-2xl font-bold text-primary-600">60%</p>
-                <p className="text-gray-600">Career path completion</p>
-              </Card>
-
-              <Card className="p-6">
-                <div className="text-primary-600 mb-4">
-                  <BookOpen className="h-8 w-8" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Resources</h3>
-                <p className="text-2xl font-bold text-primary-600">12</p>
-                <p className="text-gray-600">Materials completed</p>
-              </Card>
-
-              <Card className="p-6">
-                <div className="text-primary-600 mb-4">
-                  <Award className="h-8 w-8" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Achievements</h3>
-                <p className="text-2xl font-bold text-primary-600">5</p>
-                <p className="text-gray-600">Milestones reached</p>
-              </Card>
-            </div>
-            
+            <OverviewMetrics />
             <div className="mt-6">
               <RecentActivity />
             </div>

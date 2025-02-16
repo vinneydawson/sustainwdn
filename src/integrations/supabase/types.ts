@@ -212,6 +212,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_progress: {
+        Row: {
+          achievements_count: number
+          id: string
+          pathway_progress: number
+          resources_completed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achievements_count?: number
+          id?: string
+          pathway_progress?: number
+          resources_completed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achievements_count?: number
+          id?: string
+          pathway_progress?: number
+          resources_completed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
