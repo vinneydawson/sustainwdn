@@ -1,8 +1,32 @@
 
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Target, BookOpen, Award } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ProfileSection } from "@/components/dashboard/ProfileSection";
+import { FileUploadSection } from "@/components/dashboard/FileUploadSection";
+import { User } from "@supabase/supabase-js";
 
 const Dashboard = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/auth?signup=false');
+        return;
+      }
+      setUser(user);
+    };
+
+    getUser();
+  }, [navigate]);
+
+  if (!user) return null;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
       <div className="container mx-auto px-4 py-12">
@@ -39,25 +63,8 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        <Card className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <BookOpen className="h-5 w-5 text-primary-600" />
-              <div>
-                <p className="font-semibold">Completed Resource: Green Technology Basics</p>
-                <p className="text-sm text-gray-600">2 days ago</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <Award className="h-5 w-5 text-primary-600" />
-              <div>
-                <p className="font-semibold">Achievement Unlocked: Fast Learner</p>
-                <p className="text-sm text-gray-600">5 days ago</p>
-              </div>
-            </div>
-          </div>
-        </Card>
+        <ProfileSection user={user} />
+        <FileUploadSection user={user} />
       </div>
     </div>
   );
