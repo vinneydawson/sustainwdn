@@ -63,7 +63,10 @@ const PathwayJobs = () => {
     queryFn: async () => {
       let query = supabase
         .from("job_roles")
-        .select("*")
+        .select(`
+          *,
+          career_pathways (*)
+        `)
         .eq("pathway_id", pathwayId)
         .order('display_order', { ascending: true });
       
@@ -103,7 +106,14 @@ const PathwayJobs = () => {
                 ? job.certificates_degrees.experience
                 : []
             }
-          : null
+          : null,
+        career_pathways: {
+          ...job.career_pathways,
+          description: transformJsonToContent(job.career_pathways.description),
+          requirements: Array.isArray(job.career_pathways.requirements)
+            ? job.career_pathways.requirements.map(req => transformJsonToContent(req))
+            : null
+        }
       })) as JobRole[];
     },
     enabled: !!pathwayId,

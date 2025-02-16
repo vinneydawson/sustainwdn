@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -30,59 +31,57 @@ const JobDetails = () => {
       if (error) throw error;
       if (!rawData) return null;
 
-      const data = rawData as any;
-
       // Transform career pathway data
-      const transformedCareerPathway = {
-        ...data.career_pathways,
-        description: typeof data.career_pathways.description === 'string'
-          ? { content: data.career_pathways.description }
-          : typeof data.career_pathways.description === 'object' && 'content' in data.career_pathways.description
-            ? data.career_pathways.description
-            : { content: JSON.stringify(data.career_pathways.description) },
-        requirements: Array.isArray(data.career_pathways.requirements)
-          ? data.career_pathways.requirements.map((req: any) =>
+      const transformedCareerPathway = rawData.career_pathways ? {
+        ...rawData.career_pathways,
+        description: typeof rawData.career_pathways.description === 'string'
+          ? { content: rawData.career_pathways.description }
+          : typeof rawData.career_pathways.description === 'object' && 'content' in rawData.career_pathways.description
+            ? rawData.career_pathways.description
+            : { content: JSON.stringify(rawData.career_pathways.description) },
+        requirements: Array.isArray(rawData.career_pathways.requirements)
+          ? rawData.career_pathways.requirements.map((req: any) =>
               typeof req === 'string' ? { content: req } : req
             )
           : null
-      };
+      } : null;
 
       // Transform job role data
       const transformedJob = {
-        ...data,
-        description: typeof data.description === 'string'
-          ? { content: data.description }
-          : typeof data.description === 'object' && 'content' in data.description
-            ? data.description
-            : { content: JSON.stringify(data.description) },
-        resources: Array.isArray(data.resources)
-          ? data.resources.map((res: any) =>
+        ...rawData,
+        description: typeof rawData.description === 'string'
+          ? { content: rawData.description }
+          : typeof rawData.description === 'object' && 'content' in rawData.description
+            ? rawData.description
+            : { content: JSON.stringify(rawData.description) },
+        resources: Array.isArray(rawData.resources)
+          ? rawData.resources.map((res: any) =>
               typeof res === 'string' ? { content: res } : res
             )
           : null,
-        related_jobs: Array.isArray(data.related_jobs)
-          ? data.related_jobs.map((rel: any) =>
+        related_jobs: Array.isArray(rawData.related_jobs)
+          ? rawData.related_jobs.map((rel: any) =>
               typeof rel === 'string' ? { content: rel } : rel
             )
           : null,
-        tasks_responsibilities: data.tasks_responsibilities
+        tasks_responsibilities: rawData.tasks_responsibilities
           ? Object.fromEntries(
-              Object.entries(data.tasks_responsibilities).map(([key, value]) => [
+              Object.entries(rawData.tasks_responsibilities).map(([key, value]) => [
                 key,
                 typeof value === 'string' ? { content: value } : value
               ])
             )
           : null,
-        certificates_degrees: data.certificates_degrees
+        certificates_degrees: rawData.certificates_degrees
           ? {
-              education: Array.isArray(data.certificates_degrees.education)
-                ? data.certificates_degrees.education
+              education: Array.isArray(rawData.certificates_degrees.education)
+                ? rawData.certificates_degrees.education
                 : [],
-              certificates: Array.isArray(data.certificates_degrees.certificates)
-                ? data.certificates_degrees.certificates
+              certificates: Array.isArray(rawData.certificates_degrees.certificates)
+                ? rawData.certificates_degrees.certificates
                 : [],
-              experience: Array.isArray(data.certificates_degrees.experience)
-                ? data.certificates_degrees.experience
+              experience: Array.isArray(rawData.certificates_degrees.experience)
+                ? rawData.certificates_degrees.experience
                 : []
             }
           : null,
