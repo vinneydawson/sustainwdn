@@ -56,7 +56,7 @@ const Navigation = () => {
             <NavigationMenuList>
               <NavigationMenuItem>
                 <Link to="/explore" className={navigationMenuTriggerStyle()}>
-                  Explore Careers
+                  Explore Pathways
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
