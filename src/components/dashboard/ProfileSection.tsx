@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Mail, Phone } from "lucide-react";
+import { useDebounce } from "use-debounce";
 
 interface Profile {
   id: string;
@@ -34,9 +36,31 @@ export function ProfileSection({ user }: { user: User }) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Debounce all form values to avoid too many updates
+  const [debouncedFirstName] = useDebounce(firstName, 1000);
+  const [debouncedLastName] = useDebounce(lastName, 1000);
+  const [debouncedPhoneNumber] = useDebounce(phoneNumber, 1000);
+  const [debouncedCountry] = useDebounce(country, 1000);
+  const [debouncedTimezone] = useDebounce(timezone, 1000);
+  const [debouncedRole] = useDebounce(role, 1000);
+
   useEffect(() => {
     fetchProfile();
   }, [user]);
+
+  // Effect to auto-save when debounced values change
+  useEffect(() => {
+    if (profile) {
+      handleSave();
+    }
+  }, [
+    debouncedFirstName,
+    debouncedLastName,
+    debouncedPhoneNumber,
+    debouncedCountry,
+    debouncedTimezone,
+    debouncedRole,
+  ]);
 
   async function fetchProfile() {
     try {
@@ -74,10 +98,10 @@ export function ProfileSection({ user }: { user: User }) {
     }
   }
 
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      if (file.size > 800 * 400) { // 800x400px size limit as per mockup
+      if (file.size > 800 * 400) {
         toast({
           title: "File too large",
           description: "Avatar image must be less than 800x400px",
@@ -86,21 +110,16 @@ export function ProfileSection({ user }: { user: User }) {
         return;
       }
       setAvatarFile(file);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      setIsLoading(true);
-      let avatarUrl = profile?.avatar_url;
-
-      if (avatarFile) {
-        const fileExt = avatarFile.name.split('.').pop();
+      
+      // Auto-upload avatar when selected
+      try {
+        setIsLoading(true);
+        const fileExt = file.name.split('.').pop();
         const filePath = `${user.id}-${Math.random()}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(filePath, avatarFile);
+          .upload(filePath, file);
 
         if (uploadError) throw uploadError;
 
@@ -108,8 +127,35 @@ export function ProfileSection({ user }: { user: User }) {
           .from('avatars')
           .getPublicUrl(filePath);
 
-        avatarUrl = publicUrl;
+        await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            avatar_url: publicUrl,
+            updated_at: new Date().toISOString(),
+          });
+
+        toast({
+          title: "Avatar updated",
+          description: "Your profile picture has been updated successfully.",
+        });
+
+        fetchProfile();
+      } catch (error: any) {
+        toast({
+          title: "Error updating avatar",
+          description: error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
 
       const { error } = await supabase
         .from('profiles')
@@ -117,7 +163,6 @@ export function ProfileSection({ user }: { user: User }) {
           id: user.id,
           first_name: firstName,
           last_name: lastName,
-          avatar_url: avatarUrl,
           phone_number: phoneNumber,
           country: country,
           timezone: timezone,
@@ -129,7 +174,7 @@ export function ProfileSection({ user }: { user: User }) {
 
       toast({
         title: "Profile updated",
-        description: "Your profile has been successfully updated.",
+        description: "Your changes have been saved.",
       });
 
       fetchProfile();
@@ -141,17 +186,6 @@ export function ProfileSection({ user }: { user: User }) {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCancel = () => {
-    if (profile) {
-      setFirstName(profile.first_name || "");
-      setLastName(profile.last_name || "");
-      setPhoneNumber(profile.phone_number || "");
-      setCountry(profile.country || "");
-      setTimezone(profile.timezone || "");
-      setRole(profile.role || "");
     }
   };
 
@@ -239,9 +273,11 @@ export function ProfileSection({ user }: { user: User }) {
                 <div className="flex-1">
                   <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
                     <div className="text-center">
-                      <Button variant="outline" className="w-full max-w-xs">
-                        Click to upload
-                      </Button>
+                      <label htmlFor="avatar-upload" className="cursor-pointer">
+                        <Button variant="outline" className="w-full max-w-xs">
+                          Click to upload
+                        </Button>
+                      </label>
                       <Input
                         type="file"
                         accept="image/*"
@@ -288,23 +324,6 @@ export function ProfileSection({ user }: { user: User }) {
               />
             </div>
           </div>
-        </div>
-
-        <div className="flex justify-end gap-4 max-w-2xl">
-          <Button
-            variant="outline"
-            onClick={handleCancel}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isLoading}
-            className="bg-primary-600 hover:bg-primary-700 text-white"
-          >
-            {isLoading ? "Saving..." : "Save"}
-          </Button>
         </div>
       </div>
     </div>
