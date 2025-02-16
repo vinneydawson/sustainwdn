@@ -73,7 +73,7 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/50 backdrop-blur-md shadow-lg">
+    <nav className="sticky top-0 z-50 bg-white/30 backdrop-blur-sm shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex h-16 justify-between">
           <div className="flex">
@@ -146,7 +146,7 @@ const Navigation = () => {
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="sm:hidden bg-white/50 backdrop-blur-md">
+        <div className="sm:hidden bg-white/30 backdrop-blur-sm">
           <div className="space-y-1 pb-3 pt-2">
             {navigation.map((item) => (
               <Link
