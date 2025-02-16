@@ -42,6 +42,7 @@ export type Database = {
           description: string
           icon: string
           id: string
+          level: Database["public"]["Enums"]["job_level"]
           requirements: string[] | null
           salary_range: string | null
           skills: string[] | null
@@ -53,6 +54,7 @@ export type Database = {
           description: string
           icon: string
           id?: string
+          level: Database["public"]["Enums"]["job_level"]
           requirements?: string[] | null
           salary_range?: string | null
           skills?: string[] | null
@@ -64,6 +66,7 @@ export type Database = {
           description?: string
           icon?: string
           id?: string
+          level?: Database["public"]["Enums"]["job_level"]
           requirements?: string[] | null
           salary_range?: string | null
           skills?: string[] | null
@@ -107,53 +110,53 @@ export type Database = {
       }
       job_roles: {
         Row: {
-          certificates_degrees: Json | null
+          certificates: string[] | null
           created_at: string
           description: string
+          education: string[] | null
+          experience: string[] | null
           id: string
-          job_projections: string[] | null
           level: string
-          licenses: string[] | null
           pathway_id: string | null
           projections: string | null
           related_jobs: string[] | null
           resources: string[] | null
           salary: string | null
-          tasks_responsibilities: Json | null
+          tasks: string[] | null
           title: string
           updated_at: string
         }
         Insert: {
-          certificates_degrees?: Json | null
+          certificates?: string[] | null
           created_at?: string
           description: string
+          education?: string[] | null
+          experience?: string[] | null
           id?: string
-          job_projections?: string[] | null
           level: string
-          licenses?: string[] | null
           pathway_id?: string | null
           projections?: string | null
           related_jobs?: string[] | null
           resources?: string[] | null
           salary?: string | null
-          tasks_responsibilities?: Json | null
+          tasks?: string[] | null
           title: string
           updated_at?: string
         }
         Update: {
-          certificates_degrees?: Json | null
+          certificates?: string[] | null
           created_at?: string
           description?: string
+          education?: string[] | null
+          experience?: string[] | null
           id?: string
-          job_projections?: string[] | null
           level?: string
-          licenses?: string[] | null
           pathway_id?: string | null
           projections?: string | null
           related_jobs?: string[] | null
           resources?: string[] | null
           salary?: string | null
-          tasks_responsibilities?: Json | null
+          tasks?: string[] | null
           title?: string
           updated_at?: string
         }
