@@ -13,13 +13,17 @@ type JobRouteParams = {
   jobId: string;
 }
 
-interface CertificatesDegrees {
-  education: string[];
-  certificates: string[];
-  experience: string[];
-}
+const transformContent = (value: any): { content: string } => {
+  if (typeof value === 'string') {
+    return { content: value };
+  }
+  if (typeof value === 'object' && value !== null && 'content' in value) {
+    return value as { content: string };
+  }
+  return { content: JSON.stringify(value) };
+};
 
-const isValidCertificatesDegrees = (value: Json | null): value is CertificatesDegrees => {
+const isCertificatesDegrees = (value: Json | null): boolean => {
   if (!value || typeof value !== 'object') return false;
   const certDegrees = value as Record<string, unknown>;
   return (
@@ -36,6 +40,8 @@ const JobDetails = () => {
   const { data: job, isLoading: isLoadingJob } = useQuery({
     queryKey: ["job-role", jobId],
     queryFn: async () => {
+      if (!jobId) return null;
+
       const { data: rawData, error } = await supabase
         .from("job_roles")
         .select(`
@@ -45,56 +51,52 @@ const JobDetails = () => {
         .eq("id", jobId)
         .maybeSingle();
       
-      if (error) throw error;
-      if (!rawData) return null;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+      
+      if (!rawData) {
+        console.log("No job found with ID:", jobId);
+        return null;
+      }
+
+      console.log("Raw job data:", rawData);
 
       // Transform career pathway data
       const transformedCareerPathway = rawData.career_pathways ? {
         ...rawData.career_pathways,
-        description: typeof rawData.career_pathways.description === 'string'
-          ? { content: rawData.career_pathways.description }
-          : typeof rawData.career_pathways.description === 'object' && 'content' in rawData.career_pathways.description
-            ? rawData.career_pathways.description
-            : { content: JSON.stringify(rawData.career_pathways.description) },
+        description: transformContent(rawData.career_pathways.description),
         requirements: Array.isArray(rawData.career_pathways.requirements)
-          ? rawData.career_pathways.requirements.map((req: any) =>
-              typeof req === 'string' ? { content: req } : req
-            )
+          ? rawData.career_pathways.requirements.map(req => transformContent(req))
           : null
       } : null;
 
       // Transform job role data
       const transformedJob = {
         ...rawData,
-        description: typeof rawData.description === 'string'
-          ? { content: rawData.description }
-          : typeof rawData.description === 'object' && 'content' in rawData.description
-            ? rawData.description
-            : { content: JSON.stringify(rawData.description) },
+        description: transformContent(rawData.description),
         resources: Array.isArray(rawData.resources)
-          ? rawData.resources.map((res: any) =>
-              typeof res === 'string' ? { content: res } : res
-            )
-          : null,
+          ? rawData.resources.map(res => transformContent(res))
+          : [],
         related_jobs: Array.isArray(rawData.related_jobs)
-          ? rawData.related_jobs.map((rel: any) =>
-              typeof rel === 'string' ? { content: rel } : rel
-            )
-          : null,
+          ? rawData.related_jobs.map(rel => transformContent(rel))
+          : [],
         tasks_responsibilities: rawData.tasks_responsibilities
           ? Object.fromEntries(
-              Object.entries(rawData.tasks_responsibilities).map(([key, value]) => [
+              Object.entries(rawData.tasks_responsibilities as Record<string, any>).map(([key, value]) => [
                 key,
-                typeof value === 'string' ? { content: value } : value
+                transformContent(value)
               ])
             )
           : null,
-        certificates_degrees: isValidCertificatesDegrees(rawData.certificates_degrees)
+        certificates_degrees: isCertificatesDegrees(rawData.certificates_degrees)
           ? rawData.certificates_degrees
           : { education: [], certificates: [], experience: [] },
         career_pathways: transformedCareerPathway
       };
 
+      console.log("Transformed job data:", transformedJob);
       return transformedJob as JobRole;
     },
     enabled: !!jobId,
@@ -141,10 +143,21 @@ const JobDetails = () => {
               <p className="text-gray-600">{job.description.content}</p>
             </JobSection>
 
-            <JobListSection title="Tasks + Responsibilities" items={tasks} />
-            <JobListSection title="Education" items={education} />
-            <JobListSection title="Certificates & Degrees" items={certificates} />
-            <JobListSection title="Work Experience" items={experience} />
+            {tasks.length > 0 && (
+              <JobListSection title="Tasks + Responsibilities" items={tasks} />
+            )}
+            
+            {education.length > 0 && (
+              <JobListSection title="Education" items={education} />
+            )}
+            
+            {certificates.length > 0 && (
+              <JobListSection title="Certificates & Degrees" items={certificates} />
+            )}
+            
+            {experience.length > 0 && (
+              <JobListSection title="Work Experience" items={experience} />
+            )}
 
             {job.salary && (
               <JobSection title="Salary">
@@ -158,8 +171,13 @@ const JobDetails = () => {
               </JobSection>
             )}
 
-            <JobListSection title="Resources" items={resources} />
-            <JobListSection title="Related Jobs" items={relatedJobs} />
+            {resources.length > 0 && (
+              <JobListSection title="Resources" items={resources} />
+            )}
+            
+            {relatedJobs.length > 0 && (
+              <JobListSection title="Related Jobs" items={relatedJobs} />
+            )}
           </div>
         </div>
       </div>
