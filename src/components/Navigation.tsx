@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const Navigation = () => {
   return (
-    <div className="border-b bg-white/50 backdrop-blur-sm">
+    <div className="sticky top-0 z-50 border-b bg-white/50 backdrop-blur-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="text-xl font-bold text-primary-600">
