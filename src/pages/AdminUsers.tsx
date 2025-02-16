@@ -28,13 +28,11 @@ interface User {
 interface UserRole {
   user_id: string;
   role: string;
-}
-
-interface Profile {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone_number: string | null;
+  profile: {
+    first_name: string | null;
+    last_name: string | null;
+    phone_number: string | null;
+  } | null;
 }
 
 const AdminUsers = () => {
@@ -59,36 +57,33 @@ const AdminUsers = () => {
         throw new Error("Not authorized");
       }
 
-      // Get all user roles
+      // Get all user roles with their profile information using the foreign key relationship
       const { data: userRoles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("user_id, role")
+        .select(`
+          user_id,
+          role,
+          profile:profiles(
+            first_name,
+            last_name,
+            phone_number
+          )
+        `)
         .order('created_at', { ascending: false });
       
       if (rolesError) throw rolesError;
 
-      // Get all profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, phone_number");
-
-      if (profilesError) throw profilesError;
-
       const typedUserRoles = userRoles as UserRole[];
-      const typedProfiles = profiles as Profile[];
 
-      // Combine the data
-      return typedUserRoles.map((userRole) => {
-        const profile = typedProfiles.find(p => p.id === userRole.user_id);
-        return {
-          id: userRole.user_id,
-          first_name: profile?.first_name || '',
-          last_name: profile?.last_name || '',
-          email: "user." + userRole.user_id.slice(0, 8) + "@example.com", // Placeholder email since we can't access auth.users
-          phone_number: profile?.phone_number || '',
-          role: userRole.role,
-        };
-      });
+      // Map the data to our User interface
+      return typedUserRoles.map((userRole) => ({
+        id: userRole.user_id,
+        first_name: userRole.profile?.first_name || '',
+        last_name: userRole.profile?.last_name || '',
+        email: "user." + userRole.user_id.slice(0, 8) + "@example.com", // Placeholder email since we can't access auth.users
+        phone_number: userRole.profile?.phone_number || '',
+        role: userRole.role,
+      }));
     },
   });
 
