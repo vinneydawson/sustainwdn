@@ -150,8 +150,8 @@ export type Database = {
           licenses: string[] | null
           pathway_id: string | null
           projections: string | null
-          related_jobs: Json[] | null
-          resources: Json[] | null
+          related_jobs: Json | null
+          resources: Json | null
           salary: string | null
           tasks_responsibilities: Json | null
           title: string
@@ -168,8 +168,8 @@ export type Database = {
           licenses?: string[] | null
           pathway_id?: string | null
           projections?: string | null
-          related_jobs?: Json[] | null
-          resources?: Json[] | null
+          related_jobs?: Json | null
+          resources?: Json | null
           salary?: string | null
           tasks_responsibilities?: Json | null
           title: string
@@ -186,8 +186,8 @@ export type Database = {
           licenses?: string[] | null
           pathway_id?: string | null
           projections?: string | null
-          related_jobs?: Json[] | null
-          resources?: Json[] | null
+          related_jobs?: Json | null
+          resources?: Json | null
           salary?: string | null
           tasks_responsibilities?: Json | null
           title?: string
