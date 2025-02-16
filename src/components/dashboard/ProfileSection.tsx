@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Upload } from "lucide-react";
 import { useDebounce } from "use-debounce";
+import { ImageCropper } from "./ImageCropper";
 import {
   Select,
   SelectContent,
@@ -49,7 +49,8 @@ export function ProfileSection({ user }: { user: User }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [country, setCountry] = useState("");
   const [timezone, setTimezone] = useState("");
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [tempImageUrl, setTempImageUrl] = useState<string>("");
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { toast } = useToast();
@@ -64,7 +65,6 @@ export function ProfileSection({ user }: { user: User }) {
     fetchProfile();
   }, [user]);
 
-  // New effect to handle initial load completion
   useEffect(() => {
     if (!profile || !isInitialLoad) return;
 
@@ -84,7 +84,6 @@ export function ProfileSection({ user }: { user: User }) {
       timezone: profile.timezone || DEFAULT_PROFILE.timezone,
     };
 
-    // Check if all debounced values match the profile values
     const valuesMatch = Object.keys(currentValues).every(
       key => currentValues[key as keyof typeof currentValues] === originalValues[key as keyof typeof originalValues]
     );
@@ -183,61 +182,74 @@ export function ProfileSection({ user }: { user: User }) {
     }
   };
 
-  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      if (file.size > 800 * 400) {
+      if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "File too large",
-          description: "Avatar image must be less than 800x400px",
+          description: "Avatar image must be less than 5MB",
           variant: "destructive",
         });
         return;
       }
-      setAvatarFile(file);
       
-      try {
-        setIsLoading(true);
-        const fileExt = file.name.split('.').pop();
-        const filePath = `${user.id}-${Math.random()}.${fileExt}`;
+      const reader = new FileReader();
+      reader.onload = () => {
+        setTempImageUrl(reader.result as string);
+        setIsCropperOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(filePath, file);
+  const handleCroppedImage = async (blob: Blob) => {
+    try {
+      setIsLoading(true);
+      const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+      
+      const filePath = `${user.id}-${Math.random()}.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
 
-        if (uploadError) throw uploadError;
+      if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(filePath);
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
 
-        await supabase
-          .from('profiles')
-          .upsert({
-            id: user.id,
-            avatar_url: publicUrl,
-            updated_at: new Date().toISOString(),
-          });
-
-        await supabase.auth.updateUser({
-          data: { avatar_url: publicUrl }
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString(),
         });
 
-        toast({
-          title: "Avatar updated",
-          description: "Your profile picture has been updated successfully.",
-        });
+      if (updateError) throw updateError;
 
-        fetchProfile();
-      } catch (error: any) {
-        toast({
-          title: "Error updating avatar",
-          description: error.message,
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
+      await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl }
+      });
+
+      setProfile(prev => prev ? {
+        ...prev,
+        avatar_url: publicUrl,
+      } : null);
+
+      toast({
+        title: "Avatar updated",
+        description: "Your profile picture has been updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating avatar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -278,7 +290,6 @@ export function ProfileSection({ user }: { user: User }) {
         updated_at: new Date().toISOString(),
       } : null);
 
-      // Only show the toast if we're not in the initial load phase
       if (!isInitialLoad) {
         toast({
           title: "Changes saved",
@@ -373,7 +384,7 @@ export function ProfileSection({ user }: { user: User }) {
               </div>
               <div className="flex items-center gap-6">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src={profile?.avatar_url} />
+                  <AvatarImage src={profile?.avatar_url || undefined} />
                   <AvatarFallback>
                     {firstName?.charAt(0)}
                     {lastName?.charAt(0)}
@@ -383,8 +394,13 @@ export function ProfileSection({ user }: { user: User }) {
                   <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
                     <div className="text-center">
                       <label htmlFor="avatar-upload" className="cursor-pointer">
-                        <Button variant="outline" className="w-full max-w-xs">
-                          Click to upload
+                        <Button 
+                          variant="outline" 
+                          className="w-full max-w-xs"
+                          disabled={isLoading}
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          {isLoading ? "Uploading..." : "Click to upload"}
                         </Button>
                       </label>
                       <Input
@@ -393,9 +409,10 @@ export function ProfileSection({ user }: { user: User }) {
                         onChange={handleAvatarChange}
                         className="hidden"
                         id="avatar-upload"
+                        disabled={isLoading}
                       />
                       <p className="text-xs text-gray-500 mt-2">
-                        SVG, PNG, JPG or GIF (max. 800x400px)
+                        JPG, PNG or GIF (max. 5MB)
                       </p>
                     </div>
                   </div>
@@ -449,6 +466,13 @@ export function ProfileSection({ user }: { user: User }) {
           </div>
         </div>
       </div>
+
+      <ImageCropper
+        imageUrl={tempImageUrl}
+        isOpen={isCropperOpen}
+        onClose={() => setIsCropperOpen(false)}
+        onCropComplete={handleCroppedImage}
+      />
     </div>
   );
 }
