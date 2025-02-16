@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 type JobLevel = "entry" | "mid" | "advanced";
 
@@ -54,11 +56,19 @@ const PathwayJobs = () => {
         .single();
       
       if (error) throw error;
+      
+      // Transform the data to match our interface
       return {
         ...data,
-        description: typeof data.description === 'string'
-          ? { content: data.description }
-          : data.description,
+        description: {
+          content: typeof data.description === 'string' 
+            ? data.description 
+            : typeof data.description === 'object' && data.description !== null
+              ? 'content' in data.description
+                ? (data.description as { content: string }).content
+                : JSON.stringify(data.description)
+              : String(data.description)
+        },
         requirements: Array.isArray(data.requirements)
           ? data.requirements.map(req =>
               typeof req === 'string' ? { content: req } : req
@@ -85,11 +95,18 @@ const PathwayJobs = () => {
       const { data, error } = await query;
       if (error) throw error;
 
-      return data.map(job => ({
+      // Transform the data to match our interface
+      return (data || []).map(job => ({
         ...job,
-        description: typeof job.description === 'string'
-          ? { content: job.description }
-          : job.description,
+        description: {
+          content: typeof job.description === 'string'
+            ? job.description
+            : typeof job.description === 'object' && job.description !== null
+              ? 'content' in job.description
+                ? (job.description as { content: string }).content
+                : JSON.stringify(job.description)
+              : String(job.description)
+        },
         resources: Array.isArray(job.resources)
           ? job.resources.map(res =>
               typeof res === 'string' ? { content: res } : res
