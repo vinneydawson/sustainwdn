@@ -62,7 +62,7 @@ const Navigation = () => {
   const navigation = [
     ...baseNavigation,
     ...(session ? [{ name: "Dashboard", href: "/dashboard" }] : []),
-    ...(isAdmin ? [{ name: "Admin", href: "/admin" }] : []),
+    ...(isAdmin && session ? [{ name: "Admin", href: "/admin" }] : []),
   ];
 
   const isActive = (path: string) => {
@@ -116,7 +116,9 @@ const Navigation = () => {
                       <Button variant="outline">Sign In</Button>
                     </Link>
                     <Link to="/auth?signup=true">
-                      <Button>Sign Up</Button>
+                      <Button variant="default" className="bg-primary-600 hover:bg-primary-700 text-white">
+                        Sign Up
+                      </Button>
                     </Link>
                   </div>
                 )}
@@ -180,7 +182,7 @@ const Navigation = () => {
                     </Link>
                     <Link
                       to="/auth?signup=true"
-                      className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                      className="block px-4 py-2 text-base font-medium bg-primary-600 text-white hover:bg-primary-700"
                       onClick={() => setIsOpen(false)}
                     >
                       Sign Up

@@ -19,25 +19,39 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          setIsAdmin(false);
+          setIsLoading(false);
+          return;
+        }
+
+        const { data: role } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        setIsAdmin(role?.role === 'admin');
         setIsLoading(false);
-        navigate('/auth?signup=false');
-        return;
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+        setIsLoading(false);
       }
-
-      const { data: role } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      setIsAdmin(role?.role === 'admin');
-      setIsLoading(false);
     };
 
     checkAdminStatus();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkAdminStatus();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
