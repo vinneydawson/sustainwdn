@@ -143,6 +143,7 @@ export type Database = {
           certificates_degrees: Json | null
           created_at: string
           description: Json
+          display_order: number
           id: string
           job_projections: string[] | null
           level: string
@@ -160,6 +161,7 @@ export type Database = {
           certificates_degrees?: Json | null
           created_at?: string
           description: Json
+          display_order: number
           id?: string
           job_projections?: string[] | null
           level: string
@@ -177,6 +179,7 @@ export type Database = {
           certificates_degrees?: Json | null
           created_at?: string
           description?: Json
+          display_order?: number
           id?: string
           job_projections?: string[] | null
           level?: string

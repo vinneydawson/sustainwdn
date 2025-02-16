@@ -20,6 +20,9 @@ export interface JobRole {
   salary: string | null;
   projections: string | null;
   career_pathways: CareerPathway;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CareerPathway {

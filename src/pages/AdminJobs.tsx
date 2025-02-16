@@ -1,39 +1,51 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Briefcase, ChevronLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
-import { supabase } from "@/integrations/supabase/client";
+import { JobsTable } from "@/components/admin/JobsTable";
+import { useJobs } from "@/hooks/use-jobs";
+import type { JobRole } from "@/types/job";
 
 const AdminJobs = () => {
-  const { toast } = useToast();
-  const { data: jobs, isLoading } = useQuery({
-    queryKey: ["jobs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("job_roles")
-        .select(`
-          *,
-          career_pathways(title)
-        `)
-        .order("created_at", { ascending: false });
+  const [selectedJob, setSelectedJob] = useState<JobRole | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const { jobs, isLoading, deleteJob, reorderJobs } = useJobs();
 
-      if (error) throw error;
-      return data;
-    },
-  });
+  const handleEdit = (job: JobRole) => {
+    setSelectedJob(job);
+    // TODO: Implement job edit dialog
+  };
+
+  const handleDelete = (job: JobRole) => {
+    setSelectedJob(job);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedJob) {
+      deleteJob.mutate(selectedJob.id);
+      setDeleteDialogOpen(false);
+      setSelectedJob(null);
+    }
+  };
+
+  const handleReorder = (reorderedJobs: JobRole[]) => {
+    reorderJobs.mutate(reorderedJobs);
+  };
 
   return (
     <ProtectedRoute>
@@ -62,34 +74,35 @@ const AdminJobs = () => {
             {isLoading ? (
               <div>Loading jobs...</div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>Career Pathway</TableHead>
-                    <TableHead>Salary</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {jobs?.map((job) => (
-                    <TableRow key={job.id}>
-                      <TableCell className="font-medium">{job.title}</TableCell>
-                      <TableCell className="capitalize">{job.level}</TableCell>
-                      <TableCell>{job.career_pathways?.title || "Not assigned"}</TableCell>
-                      <TableCell>{job.salary || "Not specified"}</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <JobsTable
+                jobs={jobs || []}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onReorder={handleReorder}
+              />
             )}
           </Card>
+
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  job role and remove it from all related pages.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={confirmDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </ProtectedRoute>
