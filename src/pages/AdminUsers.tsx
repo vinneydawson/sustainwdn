@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface User {
   id: string;
-  email: string;
+  email: string | null;
   role: string;
 }
 
@@ -43,6 +43,8 @@ const AdminUsers = () => {
         .select("id, email");
         
       if (profilesError) throw profilesError;
+
+      if (!profiles) return [];
 
       // Combine the data
       return profiles.map((profile) => ({
