@@ -71,7 +71,8 @@ const Explore = () => {
                   </p>
                 )}
               </Card>
-            ))}
+            );
+          })}
         </div>
       </div>
     </div>
