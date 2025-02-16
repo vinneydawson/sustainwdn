@@ -17,10 +17,12 @@ const Index = () => {
           <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Join SustainWDN™'s community of forward-thinking professionals and discover meaningful career paths that shape a sustainable future.
           </p>
-          <Button className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-6 rounded-lg text-lg shadow-lg transition-all hover:shadow-xl">
-            Start Your Journey
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          <Link to="/explore">
+            <Button className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-6 rounded-lg text-lg shadow-lg transition-all hover:shadow-xl">
+              Start Your Journey
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </header>
 
@@ -66,10 +68,12 @@ const Index = () => {
           <p className="text-gray-600 mb-6">
             Be part of the growing SustainWDN™ community shaping the future of sustainable careers.
           </p>
-          <Button className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-4 rounded-lg">
-            Create Your Account
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          <Link to="/auth?signup=true">
+            <Button className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-4 rounded-lg">
+              Create Your Account
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
         </div>
       </section>
     </div>
