@@ -58,7 +58,7 @@ const AdminUsers = () => {
       // Then, get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, phone_number");
+        .select("id, first_name, last_name, phone_number, email");
 
       if (profilesError) throw profilesError;
 
@@ -69,7 +69,7 @@ const AdminUsers = () => {
           id: userRole.user_id,
           first_name: profile?.first_name || '',
           last_name: profile?.last_name || '',
-          email: "user." + userRole.user_id.slice(0, 8) + "@example.com", // Placeholder email since we can't access auth.users
+          email: profile?.email || 'No email provided',
           phone_number: profile?.phone_number || '',
           role: userRole.role,
         };
