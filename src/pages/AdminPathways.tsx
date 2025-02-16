@@ -1,9 +1,10 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ChevronLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -35,34 +36,43 @@ const AdminPathways = () => {
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         <div className="container mx-auto px-4 py-12">
+          <div className="flex items-center mb-4">
+            <Link to="/admin">
+              <Button variant="ghost" className="mr-4">
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Back to Dashboard
+              </Button>
+            </Link>
+          </div>
+          
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <BookOpen className="h-8 w-8 text-primary-600" />
-              <h1 className="text-4xl font-bold text-gray-900">Career Pathways</h1>
+              <h1 className="text-4xl font-bold text-gray-900 text-left">Career Pathways</h1>
             </div>
             <Button>Add Pathway</Button>
           </div>
 
           <Card className="p-6">
             {isLoading ? (
-              <div>Loading pathways...</div>
+              <div className="text-left">Loading pathways...</div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Skills</TableHead>
-                    <TableHead>Salary Range</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="text-left">Title</TableHead>
+                    <TableHead className="text-left">Skills</TableHead>
+                    <TableHead className="text-left">Salary Range</TableHead>
+                    <TableHead className="text-left">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pathways?.map((pathway) => (
                     <TableRow key={pathway.id}>
-                      <TableCell className="font-medium">{pathway.title}</TableCell>
-                      <TableCell>{pathway.skills?.join(", ") || "No skills listed"}</TableCell>
-                      <TableCell>{pathway.salary_range || "Not specified"}</TableCell>
-                      <TableCell>
+                      <TableCell className="font-medium text-left">{pathway.title}</TableCell>
+                      <TableCell className="text-left">{pathway.skills?.join(", ") || "No skills listed"}</TableCell>
+                      <TableCell className="text-left">{pathway.salary_range || "Not specified"}</TableCell>
+                      <TableCell className="text-left">
                         <Button variant="outline" size="sm">
                           Edit
                         </Button>
