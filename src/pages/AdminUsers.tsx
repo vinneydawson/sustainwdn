@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Users } from "lucide-react";
@@ -46,41 +47,32 @@ const AdminUsers = () => {
         throw new Error("Not authorized");
       }
 
-      // First, get all user roles
-      const { data: userRoles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id, role")
+      // Get user roles with their corresponding profiles in a single query
+      const { data: userRolesWithProfiles, error } = await supabase
+        .from('user_roles')
+        .select(`
+          user_id,
+          role,
+          profiles:user_id (
+            first_name,
+            last_name,
+            email,
+            phone_number
+          )
+        `)
         .order('created_at', { ascending: false });
-      
-      if (rolesError) throw rolesError;
-      console.log('User Roles:', userRoles);
 
-      // Then, get all profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("*");  // Select all fields to see what we get
+      if (error) throw error;
 
-      if (profilesError) {
-        console.error('Profiles Error:', profilesError);
-        throw profilesError;
-      }
-      console.log('Profiles:', profiles);
-
-      // Combine the data
-      const combinedData = userRoles.map((userRole) => {
-        const profile = profiles?.find(p => p.id === userRole.user_id);
-        console.log('Mapping profile:', profile);
-        return {
-          id: userRole.user_id,
-          first_name: profile?.first_name || '',
-          last_name: profile?.last_name || '',
-          email: profile?.email || 'No email provided',
-          phone_number: profile?.phone_number || '',
-          role: userRole.role,
-        };
-      });
-      console.log('Combined Data:', combinedData);
-      return combinedData;
+      // Transform the data into the expected format
+      return userRolesWithProfiles.map((item) => ({
+        id: item.user_id,
+        first_name: item.profiles?.first_name || '',
+        last_name: item.profiles?.last_name || '',
+        email: item.profiles?.email || 'No email provided',
+        phone_number: item.profiles?.phone_number || '',
+        role: item.role,
+      }));
     },
   });
 
