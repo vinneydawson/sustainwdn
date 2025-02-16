@@ -4,17 +4,29 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdmin } from "@/contexts/AdminContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { isAdmin } = useAdmin();
+  const [session, setSession] = useState(null);
+
+  // Check for session on component mount
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    setSession(session);
+  });
+
+  // Listen for auth changes
+  supabase.auth.onAuthStateChange((_event, session) => {
+    setSession(session);
+  });
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Explore", href: "/explore" },
+    { name: "Explore Pathways", href: "/explore" },
     { name: "Resources", href: "/resources" },
-    { name: "Dashboard", href: "/dashboard" },
+    ...(session ? [{ name: "Dashboard", href: "/dashboard" }] : []),
     ...(isAdmin ? [{ name: "Admin", href: "/admin" }] : []),
   ];
 
@@ -38,7 +50,7 @@ const Navigation = () => {
           </div>
 
           {/* Desktop navigation */}
-          <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-8">
             {navigation.map((item) => (
               <Link
                 key={item.name}
@@ -52,6 +64,16 @@ const Navigation = () => {
                 {item.name}
               </Link>
             ))}
+            {!session && (
+              <div className="flex items-center gap-4">
+                <Link to="/auth">
+                  <Button variant="outline">Sign In</Button>
+                </Link>
+                <Link to="/auth?signup=true">
+                  <Button>Sign Up</Button>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -90,6 +112,24 @@ const Navigation = () => {
                 {item.name}
               </Link>
             ))}
+            {!session && (
+              <div className="border-t border-gray-200 pt-4 pb-3">
+                <Link
+                  to="/auth"
+                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/auth?signup=true"
+                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}
