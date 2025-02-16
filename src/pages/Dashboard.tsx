@@ -29,8 +29,8 @@ const Dashboard = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 pt-28 pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
+      <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">
           Your SustainWDN™ Dashboard
         </h1>

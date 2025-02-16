@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -129,19 +130,13 @@ const PathwayJobs = () => {
   });
 
   if (isLoadingPathway || isLoadingJobs) {
-    return (
-      <div className="min-h-screen">
-        <div className="container mx-auto px-4 pt-28 pb-12">
-          <PathwayJobsSkeleton />
-        </div>
-      </div>
-    );
+    return <PathwayJobsSkeleton />;
   }
 
   if (!pathway) {
     return (
-      <div className="min-h-screen">
-        <div className="container mx-auto px-4 pt-28 pb-12">
+      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+        <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">Pathway not found</h1>
           <Link to="/explore" className="text-primary-600 hover:text-primary-700">
             Return to Explore
@@ -151,9 +146,11 @@ const PathwayJobs = () => {
     );
   }
 
+  console.log("Rendering jobs:", jobs);
+
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 pt-28 pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+      <div className="container mx-auto px-4 py-12">
         <Link to="/explore" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6">
           <ArrowLeft className="h-4 w-4" />
           Back to Career Pathways

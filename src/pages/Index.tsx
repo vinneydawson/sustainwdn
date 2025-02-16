@@ -5,9 +5,9 @@ import { ArrowRight, Leaf, BookOpen, Target } from "lucide-react";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
       {/* Hero Section */}
-      <header className="container mx-auto px-4 pt-28 pb-16 md:pb-24">
+      <header className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center animate-fadeIn">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Welcome to SustainWDN™
