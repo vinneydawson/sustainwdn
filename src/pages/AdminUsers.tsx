@@ -22,11 +22,6 @@ interface User {
   role: string;
 }
 
-interface Profile {
-  id: string;
-  email: string | null;
-}
-
 interface UserRole {
   user_id: string;
   role: string;
@@ -47,23 +42,20 @@ const AdminUsers = () => {
       
       if (rolesError) throw rolesError;
 
-      // Then get user profiles which contain email
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, email");
-        
-      if (profilesError) throw profilesError;
+      // Get users from auth
+      const { data: { users: authUsers }, error: usersError } = await supabase.auth.admin.listUsers();
+      
+      if (usersError) throw usersError;
 
-      if (!profiles) return [];
+      if (!authUsers) return [];
 
-      const typedProfiles = profiles as Profile[];
       const typedUserRoles = userRoles as UserRole[];
 
       // Combine the data
-      return typedProfiles.map((profile) => ({
-        id: profile.id,
-        email: profile.email || 'No email',
-        role: typedUserRoles?.find((r) => r.user_id === profile.id)?.role || "user",
+      return authUsers.map((user) => ({
+        id: user.id,
+        email: user.email || 'No email',
+        role: typedUserRoles?.find((r) => r.user_id === user.id)?.role || "user",
       }));
     },
   });
