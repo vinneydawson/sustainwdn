@@ -87,7 +87,11 @@ const Auth = () => {
               required
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button 
+            type="submit" 
+            className="w-full bg-[#1EAEDB] hover:bg-[#0FA0CE] text-white" 
+            disabled={isLoading}
+          >
             {isLoading
               ? "Loading..."
               : isSignUp
