@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,17 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check URL parameters for signup flag
+    const params = new URLSearchParams(location.search);
+    const signupParam = params.get('signup');
+    if (signupParam === 'true') {
+      setIsSignUp(true);
+    }
+  }, [location]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
