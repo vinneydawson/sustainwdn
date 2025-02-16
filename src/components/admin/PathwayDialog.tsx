@@ -74,7 +74,7 @@ export function PathwayDialog({
                 id="title"
                 {...register("title")}
                 required
-                placeholder="e.g. Software Development, Data Science, UI/UX Design"
+                placeholder="Enter a title for the career pathway..."
               />
             </div>
             <div className="grid gap-2">
