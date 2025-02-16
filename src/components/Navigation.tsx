@@ -64,21 +64,21 @@ const Navigation = () => {
                   Resources
                 </Link>
               </NavigationMenuItem>
-              {user && (
-                <NavigationMenuItem>
-                  <Link to="/dashboard" className={navigationMenuTriggerStyle()}>
-                    Dashboard
-                  </Link>
-                </NavigationMenuItem>
-              )}
             </NavigationMenuList>
           </NavigationMenu>
 
           <div className="flex gap-4">
             {user ? (
-              <Button onClick={handleSignOut} variant="outline">
-                Sign Out
-              </Button>
+              <>
+                <Link to="/dashboard">
+                  <Button className="bg-primary-600 hover:bg-primary-700 text-white">
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button onClick={handleSignOut} variant="outline">
+                  Sign Out
+                </Button>
+              </>
             ) : (
               <>
                 <Link to="/auth?signup=false">
