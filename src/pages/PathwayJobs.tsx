@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -54,7 +53,17 @@ const PathwayJobs = () => {
         .eq("id", pathwayId)
         .single();
       if (error) throw error;
-      return data as CareerPathway;
+      return {
+        ...data,
+        description: typeof data.description === 'string' 
+          ? { content: data.description }
+          : data.description,
+        requirements: Array.isArray(data.requirements)
+          ? data.requirements.map(req => 
+              typeof req === 'string' ? { content: req } : req
+            )
+          : null
+      } as CareerPathway;
     },
   });
 
@@ -72,7 +81,22 @@ const PathwayJobs = () => {
       
       const { data, error } = await query;
       if (error) throw error;
-      return data as JobRole[];
+      return data.map(job => ({
+        ...job,
+        description: typeof job.description === 'string' 
+          ? { content: job.description }
+          : job.description,
+        resources: Array.isArray(job.resources)
+          ? job.resources.map(res => 
+              typeof res === 'string' ? { content: res } : res
+            )
+          : null,
+        related_jobs: Array.isArray(job.related_jobs)
+          ? job.related_jobs.map(rel => 
+              typeof rel === 'string' ? { content: rel } : rel
+            )
+          : null
+      })) as JobRole[];
     },
   });
 

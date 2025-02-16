@@ -17,11 +17,13 @@ const iconMap = {
 interface CareerPathway {
   id: string;
   title: string;
-  description: string;
+  description: {
+    content: string;
+  };
   icon: string;
   created_at: string;
   updated_at: string;
-  requirements: string[] | null;
+  requirements: { content: string; }[] | null;
   salary_range: string | null;
   skills: string[] | null;
 }
@@ -34,7 +36,18 @@ const Explore = () => {
         .from("career_pathways")
         .select("*");
       if (error) throw error;
-      return data as CareerPathway[];
+      // Transform the raw data to match our interface
+      return data.map(pathway => ({
+        ...pathway,
+        description: typeof pathway.description === 'string' 
+          ? { content: pathway.description }
+          : pathway.description,
+        requirements: Array.isArray(pathway.requirements)
+          ? pathway.requirements.map(req => 
+              typeof req === 'string' ? { content: req } : req
+            )
+          : null
+      })) as CareerPathway[];
     },
   });
 
@@ -67,7 +80,7 @@ const Explore = () => {
                   {IconComponent && <IconComponent className="h-8 w-8 text-primary-600" />}
                   <h3 className="text-xl font-semibold">{pathway.title}</h3>
                 </div>
-                <p className="text-gray-600 mb-4">{pathway.description}</p>
+                <p className="text-gray-600 mb-4">{pathway.description.content}</p>
                 <div className="flex justify-start">
                   <Link to={`/explore/pathway/${pathway.id}`}>
                     <Button variant="secondary" size="sm">
