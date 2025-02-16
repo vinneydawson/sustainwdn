@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Users } from "lucide-react";
@@ -54,17 +53,23 @@ const AdminUsers = () => {
         .order('created_at', { ascending: false });
       
       if (rolesError) throw rolesError;
+      console.log('User Roles:', userRoles);
 
       // Then, get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, phone_number, email");
+        .select("*");  // Select all fields to see what we get
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Profiles Error:', profilesError);
+        throw profilesError;
+      }
+      console.log('Profiles:', profiles);
 
       // Combine the data
-      return userRoles.map((userRole) => {
+      const combinedData = userRoles.map((userRole) => {
         const profile = profiles?.find(p => p.id === userRole.user_id);
+        console.log('Mapping profile:', profile);
         return {
           id: userRole.user_id,
           first_name: profile?.first_name || '',
@@ -74,6 +79,8 @@ const AdminUsers = () => {
           role: userRole.role,
         };
       });
+      console.log('Combined Data:', combinedData);
+      return combinedData;
     },
   });
 
