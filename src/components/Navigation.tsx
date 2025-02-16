@@ -81,12 +81,11 @@ const Navigation = () => {
               </Button>
             ) : (
               <>
-                <Link to="/auth">
+                <Link to="/auth?signup=false">
                   <Button variant="outline">Log In</Button>
                 </Link>
-                <Link to="/auth">
+                <Link to="/auth?signup=true">
                   <Button 
-                    onClick={() => navigate("/auth?signup=true")}
                     className="bg-primary-600 hover:bg-primary-700 text-white"
                   >
                     Sign Up
