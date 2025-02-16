@@ -22,6 +22,16 @@ interface User {
   role: string;
 }
 
+interface Profile {
+  id: string;
+  email: string | null;
+}
+
+interface UserRole {
+  user_id: string;
+  role: string;
+}
+
 const AdminUsers = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -46,11 +56,14 @@ const AdminUsers = () => {
 
       if (!profiles) return [];
 
+      const typedProfiles = profiles as Profile[];
+      const typedUserRoles = userRoles as UserRole[];
+
       // Combine the data
-      return profiles.map((profile) => ({
+      return typedProfiles.map((profile) => ({
         id: profile.id,
         email: profile.email || 'No email',
-        role: userRoles?.find((r) => r.user_id === profile.id)?.role || "user",
+        role: typedUserRoles?.find((r) => r.user_id === profile.id)?.role || "user",
       }));
     },
   });
