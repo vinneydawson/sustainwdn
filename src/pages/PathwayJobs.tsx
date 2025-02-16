@@ -9,6 +9,7 @@ import { PathwayJobsSkeleton } from "@/components/pathway-jobs/PathwayJobsSkelet
 import { PathwayJobCard } from "@/components/pathway-jobs/PathwayJobCard";
 import { PathwayJobsFilter } from "@/components/pathway-jobs/PathwayJobsFilter";
 import type { JobRole, CareerPathway } from "@/types/job";
+import type { Json } from "@/integrations/supabase/types";
 
 type JobLevel = "entry" | "mid" | "advanced";
 
@@ -20,6 +21,14 @@ const transformJsonToContent = (value: any): { content: string } => {
     return { content: String(value.content) };
   }
   return { content: JSON.stringify(value) };
+};
+
+const isValidCertificatesDegrees = (value: Json): value is {
+  education?: string[];
+  certificates?: string[];
+  experience?: string[];
+} => {
+  return typeof value === 'object' && value !== null;
 };
 
 const PathwayJobs = () => {
@@ -56,7 +65,7 @@ const PathwayJobs = () => {
         .from("job_roles")
         .select("*")
         .eq("pathway_id", pathwayId)
-        .order('display_order', { ascending: true }); // Added ordering
+        .order('display_order', { ascending: true });
       
       if (selectedLevel) {
         query = query.eq("level", selectedLevel);
@@ -76,17 +85,16 @@ const PathwayJobs = () => {
           : null,
         tasks_responsibilities: job.tasks_responsibilities 
           ? Object.fromEntries(
-              Object.entries(job.tasks_responsibilities).map(([key, value]) => [
+              Object.entries(job.tasks_responsibilities as Record<string, Json>).map(([key, value]) => [
                 key,
                 typeof value === 'string' ? { content: value } : value
               ])
             )
           : null,
-        certificates_degrees: job.certificates_degrees
+        certificates_degrees: isValidCertificatesDegrees(job.certificates_degrees)
           ? {
-              ...job.certificates_degrees,
-              education: Array.isArray(job.certificates_degrees.education) 
-                ? job.certificates_degrees.education 
+              education: Array.isArray(job.certificates_degrees.education)
+                ? job.certificates_degrees.education
                 : [],
               certificates: Array.isArray(job.certificates_degrees.certificates)
                 ? job.certificates_degrees.certificates
