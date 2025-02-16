@@ -14,6 +14,21 @@ type JobRouteParams = {
   jobId: string;
 }
 
+interface TasksResponsibilities {
+  task_1: {
+    content: string;
+  };
+  [key: string]: {
+    content: string;
+  };
+}
+
+interface CertificatesDegrees {
+  education: string[];
+  certificates: string[];
+  experience: string[];
+}
+
 const transformContent = (value: any): { content: string } => {
   if (typeof value === 'string') {
     return { content: value };
@@ -74,7 +89,8 @@ const JobDetails = () => {
         } : null;
 
         // Get tasks from task_1 content and split into array
-        const tasksContent = rawData.tasks_responsibilities?.task_1?.content || '';
+        const tasksResponsibilities = rawData.tasks_responsibilities as TasksResponsibilities;
+        const tasksContent = tasksResponsibilities?.task_1?.content || '';
         const tasksList = parseTasksList(tasksContent);
 
         // Transform job role data
@@ -92,18 +108,12 @@ const JobDetails = () => {
             return acc;
           }, {} as Record<string, { content: string }>),
           certificates_degrees: {
-            education: Array.isArray(rawData.certificates_degrees?.education)
-              ? rawData.certificates_degrees.education
-              : [],
-            certificates: Array.isArray(rawData.certificates_degrees?.certificates)
-              ? rawData.certificates_degrees.certificates.map(cert => {
-                  const [text] = cert.split('|');
-                  return text;
-                })
-              : [],
-            experience: Array.isArray(rawData.certificates_degrees?.experience)
-              ? rawData.certificates_degrees.experience
-              : []
+            education: (rawData.certificates_degrees as CertificatesDegrees)?.education || [],
+            certificates: (rawData.certificates_degrees as CertificatesDegrees)?.certificates?.map(cert => {
+              const [text] = cert.split('|');
+              return text;
+            }) || [],
+            experience: (rawData.certificates_degrees as CertificatesDegrees)?.experience || []
           },
           career_pathways: transformedCareerPathway
         };
