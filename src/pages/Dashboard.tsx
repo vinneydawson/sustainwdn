@@ -63,8 +63,14 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        <ProfileSection user={user} />
-        <FileUploadSection user={user} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="w-full">
+            <ProfileSection user={user} />
+          </div>
+          <div className="w-full">
+            <FileUploadSection user={user} />
+          </div>
+        </div>
       </div>
     </div>
   );
