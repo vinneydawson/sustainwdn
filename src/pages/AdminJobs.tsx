@@ -17,17 +17,22 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import { JobsTable } from "@/components/admin/JobsTable";
+import { JobDialog } from "@/components/admin/JobDialog";
 import { useJobs } from "@/hooks/use-jobs";
+import { usePathways } from "@/hooks/use-pathways";
 import type { JobRole } from "@/types/job";
 
 const AdminJobs = () => {
   const [selectedJob, setSelectedJob] = useState<JobRole | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const { jobs, isLoading, deleteJob, reorderJobs } = useJobs();
+  const [jobDialogOpen, setJobDialogOpen] = useState(false);
+  
+  const { jobs, isLoading, createJob, updateJob, deleteJob, reorderJobs } = useJobs();
+  const { pathways } = usePathways();
 
   const handleEdit = (job: JobRole) => {
     setSelectedJob(job);
-    // TODO: Implement job edit dialog
+    setJobDialogOpen(true);
   };
 
   const handleDelete = (job: JobRole) => {
@@ -47,6 +52,26 @@ const AdminJobs = () => {
     reorderJobs.mutate(reorderedJobs);
   };
 
+  const handleJobSubmit = (data: any) => {
+    if (selectedJob) {
+      updateJob.mutate({ ...data, id: selectedJob.id });
+    } else {
+      createJob.mutate(data);
+    }
+    setJobDialogOpen(false);
+    setSelectedJob(null);
+  };
+
+  // Group jobs by pathway
+  const groupedJobs = jobs?.reduce((acc, job) => {
+    const pathwayId = job.pathway_id;
+    if (!acc[pathwayId]) {
+      acc[pathwayId] = [];
+    }
+    acc[pathwayId].push(job);
+    return acc;
+  }, {} as Record<string, JobRole[]>) || {};
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
@@ -65,23 +90,47 @@ const AdminJobs = () => {
               <Briefcase className="h-8 w-8 text-primary-600" />
               <h1 className="text-4xl font-bold text-gray-900">Job Roles</h1>
             </div>
-            <Button variant="default" className="bg-primary-600 hover:bg-primary-700">
+            <Button 
+              variant="default" 
+              className="bg-primary-600 hover:bg-primary-700"
+              onClick={() => {
+                setSelectedJob(null);
+                setJobDialogOpen(true);
+              }}
+            >
               Add Job Role
             </Button>
           </div>
 
-          <Card className="p-6">
-            {isLoading ? (
-              <div>Loading jobs...</div>
-            ) : (
-              <JobsTable
-                jobs={jobs || []}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onReorder={handleReorder}
-              />
-            )}
-          </Card>
+          {isLoading ? (
+            <div>Loading jobs...</div>
+          ) : (
+            <div className="space-y-8">
+              {pathways?.map((pathway) => {
+                const pathwayJobs = groupedJobs[pathway.id] || [];
+                if (pathwayJobs.length === 0) return null;
+
+                return (
+                  <Card key={pathway.id} className="p-6">
+                    <h2 className="text-2xl font-semibold mb-4">{pathway.title}</h2>
+                    <JobsTable
+                      jobs={pathwayJobs}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onReorder={handleReorder}
+                    />
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+
+          <JobDialog 
+            open={jobDialogOpen}
+            onOpenChange={setJobDialogOpen}
+            onSubmit={handleJobSubmit}
+            initialData={selectedJob || undefined}
+          />
 
           <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <AlertDialogContent>
