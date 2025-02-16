@@ -16,7 +16,7 @@ export function usePathways() {
       const { data, error } = await supabase
         .from("career_pathways")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("display_order", { ascending: true });
 
       if (error) throw error;
       return data as CareerPathway[];
@@ -25,11 +25,14 @@ export function usePathways() {
 
   const createPathway = useMutation({
     mutationFn: async (newPathway: PathwayFormData) => {
+      const maxOrder = pathways?.reduce((max, p) => Math.max(max, p.display_order), 0) || 0;
+      
       const { data, error } = await supabase
         .from("career_pathways")
         .insert([{
           ...newPathway,
           description: { content: newPathway.description.content },
+          display_order: maxOrder + 1,
         }])
         .select()
         .single();
@@ -109,11 +112,43 @@ export function usePathways() {
     },
   });
 
+  const reorderPathways = useMutation({
+    mutationFn: async (reorderedPathways: CareerPathway[]) => {
+      const updates = reorderedPathways.map((pathway, index) => ({
+        id: pathway.id,
+        display_order: index + 1,
+      }));
+
+      const { error } = await supabase
+        .from("career_pathways")
+        .upsert(updates, { onConflict: 'id' });
+
+      if (error) throw error;
+      return reorderedPathways;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pathways"] });
+      toast({
+        title: "Success",
+        description: "Pathway order updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update pathway order",
+        variant: "destructive",
+      });
+      queryClient.invalidateQueries({ queryKey: ["pathways"] });
+    },
+  });
+
   return {
     pathways,
     isLoading,
     createPathway,
     updatePathway,
     deletePathway,
+    reorderPathways,
   };
 }

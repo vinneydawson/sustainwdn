@@ -40,6 +40,7 @@ export type Database = {
         Row: {
           created_at: string
           description: Json
+          display_order: number
           icon: string
           id: string
           requirements: Json[] | null
@@ -51,6 +52,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description: Json
+          display_order: number
           icon: string
           id?: string
           requirements?: Json[] | null
@@ -62,6 +64,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: Json
+          display_order?: number
           icon?: string
           id?: string
           requirements?: Json[] | null

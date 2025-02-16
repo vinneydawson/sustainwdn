@@ -24,7 +24,14 @@ const AdminPathways = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedPathway, setSelectedPathway] = useState<CareerPathway | null>(null);
-  const { pathways, isLoading, createPathway, updatePathway, deletePathway } = usePathways();
+  const { 
+    pathways, 
+    isLoading, 
+    createPathway, 
+    updatePathway, 
+    deletePathway,
+    reorderPathways,
+  } = usePathways();
 
   const handleSubmit = (data: PathwayFormData) => {
     if (selectedPathway) {
@@ -32,6 +39,7 @@ const AdminPathways = () => {
     } else {
       createPathway.mutate(data);
     }
+    setDialogOpen(false);
   };
 
   const handleEdit = (pathway: CareerPathway) => {
@@ -50,6 +58,10 @@ const AdminPathways = () => {
       setDeleteDialogOpen(false);
       setSelectedPathway(null);
     }
+  };
+
+  const handleReorder = (reorderedPathways: CareerPathway[]) => {
+    reorderPathways.mutate(reorderedPathways);
   };
 
   return (
@@ -90,6 +102,7 @@ const AdminPathways = () => {
                 pathways={pathways || []}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onReorder={handleReorder}
               />
             )}
           </Card>
