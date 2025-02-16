@@ -109,7 +109,7 @@ const JobDetails = () => {
     retry: 3,
     retryDelay: 1000,
     staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
-    cacheTime: 1000 * 60 * 30, // Keep cached data for 30 minutes
+    gcTime: 1000 * 60 * 30, // Keep cached data for 30 minutes (formerly cacheTime)
     enabled: !!jobId,
   });
 
