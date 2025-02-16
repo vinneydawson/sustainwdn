@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Fish, Wind, Banknote, Cpu, Droplet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import type { CareerPathway } from "@/types/job";
 
 const iconMap = {
   Fish,
@@ -14,39 +15,25 @@ const iconMap = {
   Droplet,
 };
 
-interface CareerPathway {
-  id: string;
-  title: string;
-  description: {
-    content: string;
-  };
-  icon: string;
-  created_at: string;
-  updated_at: string;
-  requirements: { content: string; }[] | null;
-  salary_range: string | null;
-  skills: string[] | null;
-}
-
 const Explore = () => {
   const { data: pathways, isLoading: isLoadingPathways } = useQuery({
     queryKey: ["career-pathways"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("career_pathways")
-        .select("*");
+        .select("*")
+        .order("display_order", { ascending: true });
+
       if (error) throw error;
-      // Transform the raw data to match our interface
+      
       return data.map(pathway => ({
         ...pathway,
         description: typeof pathway.description === 'string' 
           ? { content: pathway.description }
-          : pathway.description,
-        requirements: Array.isArray(pathway.requirements)
-          ? pathway.requirements.map(req => 
-              typeof req === 'string' ? { content: req } : req
-            )
-          : null
+          : pathway.description as { content: string },
+        requirements: pathway.requirements?.map(req => 
+          typeof req === 'string' ? { content: req } : req
+        ) as { content: string }[] | null
       })) as CareerPathway[];
     },
   });

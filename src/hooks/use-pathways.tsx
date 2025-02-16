@@ -4,7 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { CareerPathway } from "@/types/job";
 
-export type PathwayFormData = Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>;
+export type PathwayFormData = Omit<CareerPathway, 'id' | 'created_at' | 'updated_at' | 'display_order'>;
 
 export function usePathways() {
   const { toast } = useToast();
@@ -19,7 +19,16 @@ export function usePathways() {
         .order("display_order", { ascending: true });
 
       if (error) throw error;
-      return data as CareerPathway[];
+      
+      return data.map(pathway => ({
+        ...pathway,
+        description: typeof pathway.description === 'string' 
+          ? { content: pathway.description }
+          : pathway.description as { content: string },
+        requirements: pathway.requirements?.map(req => 
+          typeof req === 'string' ? { content: req } : req
+        ) as { content: string }[] | null
+      })) as CareerPathway[];
     },
   });
 
@@ -31,7 +40,6 @@ export function usePathways() {
         .from("career_pathways")
         .insert([{
           ...newPathway,
-          description: { content: newPathway.description.content },
           display_order: maxOrder + 1,
         }])
         .select()
@@ -62,7 +70,6 @@ export function usePathways() {
         .from("career_pathways")
         .update({
           ...pathway,
-          description: { content: pathway.description.content },
         })
         .eq("id", pathway.id)
         .select()
@@ -117,11 +124,14 @@ export function usePathways() {
       const updates = reorderedPathways.map((pathway, index) => ({
         id: pathway.id,
         display_order: index + 1,
+        title: pathway.title,
+        description: pathway.description,
+        icon: pathway.icon,
       }));
 
       const { error } = await supabase
         .from("career_pathways")
-        .upsert(updates, { onConflict: 'id' });
+        .upsert(updates);
 
       if (error) throw error;
       return reorderedPathways;

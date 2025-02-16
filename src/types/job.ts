@@ -34,4 +34,5 @@ export interface CareerPathway {
   requirements: { content: string; }[] | null;
   salary_range: string | null;
   skills: string[] | null;
+  display_order: number;
 }
