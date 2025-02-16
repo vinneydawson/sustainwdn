@@ -37,9 +37,12 @@ const JobDetails = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("job_roles")
-        .select("*, career_pathways!inner(*)")
+        .select(`
+          *,
+          career_pathways (*)
+        `)
         .eq("id", jobId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data as JobRole & { career_pathways: CareerPathway };
