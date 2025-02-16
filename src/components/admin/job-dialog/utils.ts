@@ -71,5 +71,7 @@ export function getInitialFormValues(initialData?: JobRole): JobFormData {
     resources: initialData?.resources || [],
     related_jobs: initialData?.related_jobs || [],
     projections: initialData?.projections || "",
+    licenses: initialData?.licenses || [],         // Added missing property
+    job_projections: initialData?.job_projections || []  // Added missing property
   };
 }
