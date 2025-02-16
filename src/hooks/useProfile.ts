@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { User } from "@supabase/supabase-js";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "use-debounce";
 
@@ -36,7 +36,6 @@ export function useProfile(user: User) {
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const initialLoadRef = useRef(true);
-  const { toast } = useToast();
 
   const [debouncedFirstName] = useDebounce(firstName, 1000);
   const [debouncedLastName] = useDebounce(lastName, 1000);
