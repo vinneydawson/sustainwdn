@@ -38,13 +38,9 @@ Object.keys(groupedCountries).forEach(group => {
 
 export const detectUserCountry = async (): Promise<string> => {
   try {
-    const { data, error } = await supabase.functions.invoke('detect-location');
-    
-    if (error) throw error;
-    
-    // If the country code exists in our list, use it, otherwise default to US
-    const countryExists = countries.some(c => c.code === data.country);
-    return countryExists ? data.country : 'US';
+    const response = await fetch('https://ipapi.co/json/');
+    const data = await response.json();
+    return data.country_code;
   } catch (error) {
     console.error('Error detecting user country:', error);
     return 'US'; // Default to US if detection fails

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/components/ui/use-toast";
@@ -41,40 +42,6 @@ export function useProfile(user: User) {
   const [debouncedPhoneNumber] = useDebounce(phoneNumber, 1000);
   const [debouncedCountry] = useDebounce(country, 1000);
   const [debouncedTimezone] = useDebounce(timezone, 1000);
-
-  useEffect(() => {
-    const detectLocation = async () => {
-      try {
-        if (!profile?.updated_at) {
-          const detectedCountry = await detectUserCountry();
-          const detectedTimezone = detectUserTimezone();
-
-          if (detectedCountry !== country) {
-            setCountry(detectedCountry);
-            toast({
-              title: "Location Updated",
-              description: "Your country has been automatically updated based on your current location.",
-            });
-          }
-
-          if (detectedTimezone !== timezone) {
-            setTimezone(detectedTimezone);
-            toast({
-              title: "Timezone Updated",
-              description: "Your timezone has been automatically updated based on your current location.",
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error detecting location:", error);
-      }
-    };
-
-    detectLocation();
-    const intervalId = setInterval(detectLocation, 60 * 60 * 1000);
-
-    return () => clearInterval(intervalId);
-  }, [profile?.updated_at, country, timezone, toast]);
 
   const handleSave = async () => {
     try {
