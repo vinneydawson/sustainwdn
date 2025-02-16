@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,7 @@ const DEFAULT_PROFILE = {
 };
 
 export function ProfileSection({ user }: { user: User }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -309,6 +310,10 @@ export function ProfileSection({ user }: { user: User }) {
     }
   };
 
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-2xl font-bold mb-2">Profile Information</h2>
@@ -393,22 +398,21 @@ export function ProfileSection({ user }: { user: User }) {
                 <div className="flex-1">
                   <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
                     <div className="text-center">
-                      <label htmlFor="avatar-upload" className="cursor-pointer">
-                        <Button 
-                          variant="outline" 
-                          className="w-full max-w-xs"
-                          disabled={isLoading}
-                        >
-                          <Upload className="mr-2 h-4 w-4" />
-                          {isLoading ? "Uploading..." : "Click to upload"}
-                        </Button>
-                      </label>
+                      <Button 
+                        variant="outline" 
+                        className="w-full max-w-xs"
+                        disabled={isLoading}
+                        onClick={handleUploadClick}
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        {isLoading ? "Uploading..." : "Click to upload"}
+                      </Button>
                       <Input
                         type="file"
                         accept="image/*"
                         onChange={handleAvatarChange}
                         className="hidden"
-                        id="avatar-upload"
+                        ref={fileInputRef}
                         disabled={isLoading}
                       />
                       <p className="text-xs text-gray-500 mt-2">
