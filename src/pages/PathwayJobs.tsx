@@ -126,7 +126,7 @@ const PathwayJobs = () => {
                 </p>
               )}
               <Link to={`/explore/job/${job.id}`}>
-                <Button variant="default" size="sm" className="w-full">
+                <Button size="sm" className="w-full bg-primary-600 hover:bg-primary-700 text-white">
                   View Job Details
                 </Button>
               </Link>
