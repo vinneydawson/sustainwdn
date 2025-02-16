@@ -74,7 +74,7 @@ const Navigation = () => {
 
   return (
     <div className="sticky top-4 z-50 px-4">
-      <nav className="mx-auto max-w-[800px] rounded-lg bg-white/80 backdrop-blur-sm shadow-lg">
+      <nav className="mx-auto max-w-[900px] rounded-lg bg-white/80 backdrop-blur-sm shadow-lg">
         <div className="px-4">
           <div className="flex h-16 justify-between">
             <div className="flex">

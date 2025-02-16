@@ -62,5 +62,14 @@
 /* Full bleed background styles */
 .full-bleed {
   width: 100vw;
-  min-height: calc(100vh - 4rem); /* Subtract navbar height */
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #f3f4f6, #ffffff);
 }
+
+/* Make sure content is positioned correctly within full-bleed */
+.full-bleed > * {
+  position: relative;
+  z-index: 1;
+}
+
