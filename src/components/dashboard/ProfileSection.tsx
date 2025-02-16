@@ -51,7 +51,7 @@ export function ProfileSection({ user }: { user: User }) {
   const [timezone, setTimezone] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { toast } = useToast();
 
   const [debouncedFirstName] = useDebounce(firstName, 1000);
@@ -65,7 +65,7 @@ export function ProfileSection({ user }: { user: User }) {
   }, [user]);
 
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || isInitialLoad) return;
 
     const currentValues = {
       first_name: debouncedFirstName,
@@ -137,6 +137,9 @@ export function ProfileSection({ user }: { user: User }) {
         setCountry(DEFAULT_PROFILE.country);
         setTimezone(DEFAULT_PROFILE.timezone);
       }
+
+      // Mark initial load as complete after setting all values
+      setIsInitialLoad(false);
     } catch (error: any) {
       toast({
         title: "Error fetching profile",
@@ -241,11 +244,14 @@ export function ProfileSection({ user }: { user: User }) {
         updated_at: new Date().toISOString(),
       } : null);
 
-      toast({
-        title: "Changes saved",
-        description: "Your profile has been updated successfully.",
-        duration: 3000,
-      });
+      // Only show the toast if we're not in the initial load phase
+      if (!isInitialLoad) {
+        toast({
+          title: "Changes saved",
+          description: "Your profile has been updated successfully.",
+          duration: 3000,
+        });
+      }
 
     } catch (error: any) {
       toast({
