@@ -8,18 +8,18 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
-import JobDetails from "./pages/JobDetails"; // Add this import
+import PathwayJobs from "./pages/PathwayJobs";
+import JobDetails from "./pages/JobDetails";
 import Resources from "./pages/Resources";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import React from 'react';
 
-// Create a new QueryClient instance outside of the component
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
       retry: 1,
     },
   },
@@ -37,7 +37,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/explore" element={<Explore />} />
-              <Route path="/explore/:jobId" element={<JobDetails />} />
+              <Route path="/explore/pathway/:pathwayId" element={<PathwayJobs />} />
+              <Route path="/explore/job/:jobId" element={<JobDetails />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/auth" element={<Auth />} />

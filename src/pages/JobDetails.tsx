@@ -1,5 +1,5 @@
 
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ interface JobRole {
   projections: string | null;
   resources: string[] | null;
   related_jobs: string[] | null;
+  career_pathways: CareerPathway;
 }
 
 interface CareerPathway {
@@ -31,6 +32,7 @@ interface CareerPathway {
 
 const JobDetails = () => {
   const { jobId } = useParams();
+  const navigate = useNavigate();
 
   const { data: job, isLoading: isLoadingJob } = useQuery({
     queryKey: ["job-role", jobId],
@@ -45,7 +47,7 @@ const JobDetails = () => {
         .maybeSingle();
       
       if (error) throw error;
-      return data as JobRole & { career_pathways: CareerPathway };
+      return data as JobRole;
     },
   });
 
@@ -64,9 +66,9 @@ const JobDetails = () => {
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Job Not Found</h1>
-          <Link to="/explore">
-            <Button variant="default">Back to Explore</Button>
-          </Link>
+          <Button variant="default" onClick={() => navigate("/explore")}>
+            Back to Explore
+          </Button>
         </div>
       </div>
     );
@@ -75,9 +77,12 @@ const JobDetails = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
       <div className="container mx-auto px-4 py-12">
-        <Link to="/explore" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6">
+        <Link 
+          to={`/explore/pathway/${job.pathway_id}`} 
+          className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6"
+        >
           <ArrowLeft className="h-4 w-4" />
-          Back to Explore
+          Back to {job.career_pathways.title}
         </Link>
         
         <div className="bg-white rounded-lg shadow-lg p-8">
