@@ -53,7 +53,7 @@ const AdminUsers = () => {
         .select(`
           user_id,
           role,
-          profile:profiles!user_id(
+          profiles!user_roles_user_id_fkey(
             first_name,
             last_name,
             email,
@@ -67,10 +67,10 @@ const AdminUsers = () => {
       // Transform the data into the expected format
       return userRolesWithProfiles.map((item) => ({
         id: item.user_id,
-        first_name: item.profile?.first_name || '',
-        last_name: item.profile?.last_name || '',
-        email: item.profile?.email || 'No email provided',
-        phone_number: item.profile?.phone_number || '',
+        first_name: item.profiles?.first_name || '',
+        last_name: item.profiles?.last_name || '',
+        email: item.profiles?.email || 'No email provided',
+        phone_number: item.profiles?.phone_number || '',
         role: item.role,
       }));
     },
