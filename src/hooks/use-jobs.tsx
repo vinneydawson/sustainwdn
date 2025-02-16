@@ -28,12 +28,12 @@ export function useJobs() {
         description: typeof job.description === 'string'
           ? { content: job.description }
           : job.description as { content: string },
-        resources: job.resources?.map(res =>
-          typeof res === 'string' ? { content: res } : res
-        ) as { content: string }[] | null,
-        related_jobs: job.related_jobs?.map(rel =>
-          typeof rel === 'string' ? { content: rel } : rel
-        ) as { content: string }[] | null,
+        resources: Array.isArray(job.resources)
+          ? job.resources.map(res => typeof res === 'string' ? { content: res } : res)
+          : (job.resources as { content: string }[] || []),
+        related_jobs: Array.isArray(job.related_jobs)
+          ? job.related_jobs.map(rel => typeof rel === 'string' ? { content: rel } : rel)
+          : (job.related_jobs as { content: string }[] || []),
         tasks_responsibilities: job.tasks_responsibilities
           ? Object.fromEntries(
               Object.entries(job.tasks_responsibilities).map(([key, value]) => [
@@ -133,7 +133,6 @@ export function useJobs() {
 
   const reorderJobs = useMutation({
     mutationFn: async (reorderedJobs: JobRole[]) => {
-      // For each job, we'll update only its display_order while preserving all other fields
       for (const [index, job] of reorderedJobs.entries()) {
         const { error } = await supabase
           .from("job_roles")
