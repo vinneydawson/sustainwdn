@@ -4,7 +4,13 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { FileText, Trash2, Upload } from "lucide-react";
+import { FileText, Trash2, Upload, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface FileItem {
   id: string;
@@ -27,6 +33,8 @@ export function FileUploadSection({ user }: { user: User }) {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -149,12 +157,49 @@ export function FileUploadSection({ user }: { user: User }) {
     }
   };
 
+  const handlePreview = (file: FileItem) => {
+    setSelectedFile(file);
+    setPreviewOpen(true);
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const renderFilePreview = () => {
+    if (!selectedFile) return null;
+
+    if (selectedFile.type === 'application/pdf') {
+      return (
+        <iframe
+          src={selectedFile.url}
+          className="w-full h-[80vh]"
+          title={selectedFile.name}
+        />
+      );
+    }
+
+    if (selectedFile.type === 'text/plain') {
+      return (
+        <iframe
+          src={selectedFile.url}
+          className="w-full h-[80vh]"
+          title={selectedFile.name}
+        />
+      );
+    }
+
+    return (
+      <div className="flex items-center justify-center h-[80vh]">
+        <p className="text-gray-500">
+          Preview not available for this file type. Please download the file to view it.
+        </p>
+      </div>
+    );
   };
 
   return (
@@ -206,7 +251,14 @@ export function FileUploadSection({ user }: { user: User }) {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePreview(file)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
               <Button 
                 asChild 
                 className="bg-primary-600 hover:bg-primary-700 text-white"
@@ -233,6 +285,15 @@ export function FileUploadSection({ user }: { user: User }) {
           </p>
         )}
       </div>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-4xl w-full">
+          <DialogHeader>
+            <DialogTitle>{selectedFile?.name}</DialogTitle>
+          </DialogHeader>
+          {renderFilePreview()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
