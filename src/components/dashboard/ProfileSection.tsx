@@ -17,7 +17,7 @@ import {
   SelectLabel,
   SelectSeparator,
 } from "@/components/ui/select";
-import { countries, timezones, detectUserTimezone } from "@/lib/profile-utils";
+import { countries, timezones, detectUserTimezone, groupedTimezones } from "@/lib/profile-utils";
 
 interface Profile {
   id: string;
