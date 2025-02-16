@@ -1,46 +1,12 @@
 
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft } from "lucide-react";
-
-interface JobRole {
-  id: string;
-  pathway_id: string;
-  title: string;
-  description: {
-    content: string;
-  };
-  level: string;
-  certificates_degrees: {
-    education?: string[];
-    certificates?: string[];
-    experience?: string[];
-  } | null;
-  tasks_responsibilities: Record<string, { content: string }> | null;
-  licenses: string[] | null;
-  job_projections: string[] | null;
-  resources: { content: string; }[] | null;
-  related_jobs: { content: string; }[] | null;
-  salary: string | null;
-  projections: string | null;
-  career_pathways: CareerPathway;
-}
-
-interface CareerPathway {
-  id: string;
-  title: string;
-  description: {
-    content: string;
-  };
-  icon: string;
-  created_at: string;
-  updated_at: string;
-  requirements: { content: string; }[] | null;
-  salary_range: string | null;
-  skills: string[] | null;
-}
+import { JobHeader } from "@/components/job-details/JobHeader";
+import { JobSection } from "@/components/job-details/JobSection";
+import { JobListSection } from "@/components/job-details/JobListSection";
+import { JobRole } from "@/types/job";
 
 const JobDetails = () => {
   const { jobId } = useParams();
@@ -144,105 +110,33 @@ const JobDetails = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
       <div className="container mx-auto px-4 py-12">
-        <Link 
-          to={`/explore/pathway/${job.pathway_id}`} 
-          className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to {job.career_pathways.title}
-        </Link>
+        <JobHeader job={job} />
         
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">{job.title}</h1>
-          <p className="text-lg text-primary-600 mb-6">
-            {job.level.charAt(0).toUpperCase() + job.level.slice(1)} Level Position
-          </p>
-          
           <div className="space-y-8">
-            <section>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Overview</h2>
+            <JobSection title="Overview">
               <p className="text-gray-600">{job.description.content}</p>
-            </section>
+            </JobSection>
 
-            {tasks.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Tasks + Responsibilities</h2>
-                <ul className="list-disc pl-6 space-y-2">
-                  {tasks.map((task: string, index) => (
-                    <li key={index} className="text-gray-600">{task}</li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {education.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Education</h2>
-                <ul className="list-disc pl-6 space-y-2">
-                  {education.map((edu: string, index: number) => (
-                    <li key={index} className="text-gray-600">{edu}</li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {certificates.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Certificates & Degrees</h2>
-                <ul className="list-disc pl-6 space-y-2">
-                  {certificates.map((cert: string, index: number) => (
-                    <li key={index} className="text-gray-600">{cert}</li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {experience.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Work Experience</h2>
-                <ul className="list-disc pl-6 space-y-2">
-                  {experience.map((exp: string, index: number) => (
-                    <li key={index} className="text-gray-600">{exp}</li>
-                  ))}
-                </ul>
-              </section>
-            )}
+            <JobListSection title="Tasks + Responsibilities" items={tasks} />
+            <JobListSection title="Education" items={education} />
+            <JobListSection title="Certificates & Degrees" items={certificates} />
+            <JobListSection title="Work Experience" items={experience} />
 
             {job.salary && (
-              <section>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Salary</h2>
+              <JobSection title="Salary">
                 <p className="text-gray-600">{job.salary}</p>
-              </section>
+              </JobSection>
             )}
 
             {job.projections && (
-              <section>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Job Projections</h2>
+              <JobSection title="Job Projections">
                 <p className="text-gray-600">{job.projections}</p>
-              </section>
+              </JobSection>
             )}
 
-            {resources.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Resources</h2>
-                <ul className="list-disc pl-6 space-y-2">
-                  {resources.map((resource, index) => (
-                    <li key={index} className="text-gray-600">{resource}</li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {relatedJobs.length > 0 && (
-              <section>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Related Jobs</h2>
-                <ul className="list-disc pl-6 space-y-2">
-                  {relatedJobs.map((relatedJob, index) => (
-                    <li key={index} className="text-gray-600">{relatedJob}</li>
-                  ))}
-                </ul>
-              </section>
-            )}
+            <JobListSection title="Resources" items={resources} />
+            <JobListSection title="Related Jobs" items={relatedJobs} />
           </div>
         </div>
       </div>
