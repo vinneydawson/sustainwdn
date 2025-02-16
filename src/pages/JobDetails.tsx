@@ -15,9 +15,6 @@ type JobRouteParams = {
 }
 
 interface TasksResponsibilities {
-  task_1: {
-    content: string;
-  };
   [key: string]: {
     content: string;
   };
@@ -40,8 +37,8 @@ const transformContent = (value: any): { content: string } => {
   return { content: JSON.stringify(value) };
 };
 
-const parseTasksList = (tasks: string): string[] => {
-  return tasks.split('\n').filter(task => task.trim().length > 0);
+const parseTasksList = (tasks: TasksResponsibilities): string[] => {
+  return Object.values(tasks).map(task => task.content);
 };
 
 const isCertificatesDegrees = (value: Json | null): value is CertificatesDegreesData => {
@@ -99,10 +96,9 @@ const JobDetails = () => {
             : null
         } : null;
 
-        // Get tasks from task_1 content and split into array
-        const tasksResponsibilities = rawData.tasks_responsibilities as TasksResponsibilities;
-        const tasksContent = tasksResponsibilities?.task_1?.content || '';
-        const tasksList = parseTasksList(tasksContent);
+        // Get tasks and responsibilities
+        const tasks = rawData.tasks_responsibilities as TasksResponsibilities || {};
+        const tasksList = parseTasksList(tasks);
 
         // Transform job role data
         const transformedJob = {
@@ -120,10 +116,7 @@ const JobDetails = () => {
           }, {} as Record<string, { content: string }>),
           certificates_degrees: isCertificatesDegrees(rawData.certificates_degrees) ? {
             education: rawData.certificates_degrees.education,
-            certificates: rawData.certificates_degrees.certificates.map(cert => {
-              const [text] = cert.split('|');
-              return text;
-            }),
+            certificates: rawData.certificates_degrees.certificates,
             experience: rawData.certificates_degrees.experience
           } : {
             education: [],
@@ -190,7 +183,7 @@ const JobDetails = () => {
     );
   }
 
-  const tasks = job.tasks_responsibilities ? Object.values(job.tasks_responsibilities).map(t => t.content) : [];
+  const tasks = Object.values(job.tasks_responsibilities || {}).map(t => t.content);
   const education = job.certificates_degrees?.education || [];
   const certificates = job.certificates_degrees?.certificates || [];
   const experience = job.certificates_degrees?.experience || [];
