@@ -18,7 +18,7 @@ import {
   SelectLabel,
   SelectSeparator,
 } from "@/components/ui/select";
-import { countries, timezones, detectUserTimezone, groupedTimezones, groupedCountries, detectUserCountry } from "@/lib/profile-utils";
+import { countries, timezones, detectUserTimezone, groupedCountries, groupedTimezones, detectUserCountry } from "@/lib/profile-utils";
 
 interface Profile {
   id: string;
@@ -59,8 +59,58 @@ export function ProfileSection({ user }: { user: User }) {
   const [debouncedTimezone] = useDebounce(timezone, 1000);
 
   useEffect(() => {
-    fetchProfile();
-  }, [user]);
+    const initializeProfile = async () => {
+      try {
+        const detectedCountry = await detectUserCountry();
+        
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        
+        if (data) {
+          setProfile(data as Profile);
+          setFirstName(data.first_name || DEFAULT_PROFILE.first_name);
+          setLastName(data.last_name || DEFAULT_PROFILE.last_name);
+          setPhoneNumber(data.phone_number || DEFAULT_PROFILE.phone_number);
+          setCountry(data.country || detectedCountry);
+          setTimezone(data.timezone || DEFAULT_PROFILE.timezone);
+        } else {
+          const { error: insertError } = await supabase
+            .from("profiles")
+            .insert({
+              id: user.id,
+              first_name: DEFAULT_PROFILE.first_name,
+              last_name: DEFAULT_PROFILE.last_name,
+              phone_number: DEFAULT_PROFILE.phone_number,
+              country: detectedCountry,
+              timezone: DEFAULT_PROFILE.timezone,
+            })
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+          
+          setFirstName(DEFAULT_PROFILE.first_name);
+          setLastName(DEFAULT_PROFILE.last_name);
+          setPhoneNumber(DEFAULT_PROFILE.phone_number);
+          setCountry(detectedCountry);
+          setTimezone(DEFAULT_PROFILE.timezone);
+        }
+      } catch (error: any) {
+        toast({
+          title: "Error fetching profile",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    };
+
+    initializeProfile();
+  }, [user, toast]);
 
   useEffect(() => {
     if (profile) {
@@ -378,58 +428,3 @@ export function ProfileSection({ user }: { user: User }) {
     </div>
   );
 }
-
-// Update the useEffect for initial profile fetch to include country detection
-useEffect(() => {
-  const initializeProfile = async () => {
-    try {
-      const detectedCountry = await detectUserCountry();
-      
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      
-      if (data) {
-        setProfile(data as Profile);
-        setFirstName(data.first_name || DEFAULT_PROFILE.first_name);
-        setLastName(data.last_name || DEFAULT_PROFILE.last_name);
-        setPhoneNumber(data.phone_number || DEFAULT_PROFILE.phone_number);
-        setCountry(data.country || detectedCountry);
-        setTimezone(data.timezone || DEFAULT_PROFILE.timezone);
-      } else {
-        const { error: insertError } = await supabase
-          .from("profiles")
-          .insert({
-            id: user.id,
-            first_name: DEFAULT_PROFILE.first_name,
-            last_name: DEFAULT_PROFILE.last_name,
-            phone_number: DEFAULT_PROFILE.phone_number,
-            country: detectedCountry,
-            timezone: DEFAULT_PROFILE.timezone,
-          })
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-        
-        setFirstName(DEFAULT_PROFILE.first_name);
-        setLastName(DEFAULT_PROFILE.last_name);
-        setPhoneNumber(DEFAULT_PROFILE.phone_number);
-        setCountry(detectedCountry);
-        setTimezone(DEFAULT_PROFILE.timezone);
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error fetching profile",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  initializeProfile();
-}, [user]);
