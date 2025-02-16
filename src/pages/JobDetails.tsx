@@ -55,7 +55,7 @@ const JobDetails = () => {
             career_pathways (*)
           `)
           .eq('id', jobId)
-          .single();
+          .maybeSingle();
 
         if (fetchError) {
           console.error("Error fetching job:", fetchError);
