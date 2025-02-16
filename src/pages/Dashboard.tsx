@@ -6,6 +6,7 @@ import { Target, BookOpen, Award, LayoutDashboard, User, File } from "lucide-rea
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileSection } from "@/components/dashboard/ProfileSection";
 import { FileUploadSection } from "@/components/dashboard/FileUploadSection";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -79,6 +80,10 @@ const Dashboard = () => {
                 <p className="text-2xl font-bold text-primary-600">5</p>
                 <p className="text-gray-600">Milestones reached</p>
               </Card>
+            </div>
+            
+            <div className="mt-6">
+              <RecentActivity />
             </div>
           </TabsContent>
 

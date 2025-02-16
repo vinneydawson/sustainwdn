@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      activities: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          metadata: Json | null
+          type: Database["public"]["Enums"]["activity_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          type: Database["public"]["Enums"]["activity_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          type?: Database["public"]["Enums"]["activity_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       career_pathways: {
         Row: {
           created_at: string
@@ -193,6 +220,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      activity_type:
+        | "profile_update"
+        | "file_upload"
+        | "file_delete"
+        | "pathway_started"
+        | "resource_completed"
       job_level: "entry" | "mid" | "advanced"
     }
     CompositeTypes: {
