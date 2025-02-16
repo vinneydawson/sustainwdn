@@ -95,16 +95,18 @@ const PathwayJobs = () => {
         {/* Filter buttons */}
         <div className="flex flex-wrap gap-4 mb-8">
           <Button
-            variant={selectedLevel === null ? "default" : "outline"}
+            variant={selectedLevel === null ? "outline" : "outline"}
             onClick={() => setSelectedLevel(null)}
+            className={selectedLevel === null ? "bg-[#7E69AB] text-white hover:bg-[#7E69AB]/90" : ""}
           >
             All Levels
           </Button>
           {levels.map((level) => (
             <Button
               key={level.id}
-              variant={selectedLevel === level.id ? "default" : "outline"}
+              variant={selectedLevel === level.id ? "outline" : "outline"}
               onClick={() => setSelectedLevel(level.id)}
+              className={selectedLevel === level.id ? "bg-[#7E69AB] text-white hover:bg-[#7E69AB]/90" : ""}
             >
               {level.label}
             </Button>
