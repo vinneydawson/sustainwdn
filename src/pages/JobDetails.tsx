@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -93,7 +92,6 @@ const JobDetails = () => {
 
         console.log("Raw job data:", rawData);
 
-        // Transform career pathway data
         const transformedCareerPathway = rawData.career_pathways ? {
           ...rawData.career_pathways,
           description: transformContent(rawData.career_pathways.description),
@@ -102,13 +100,11 @@ const JobDetails = () => {
             : null
         } : null;
 
-        // Get tasks and responsibilities
         const tasks = rawData.tasks_responsibilities as TasksResponsibilities;
         const tasksList = parseTasksList(tasks);
 
         console.log("Tasks list:", tasksList);
 
-        // Transform job role data
         const transformedJob = {
           ...rawData,
           description: transformContent(rawData.description),
@@ -148,11 +144,9 @@ const JobDetails = () => {
     enabled: !!jobId,
   });
 
-  console.log("Current job state:", { job, isLoadingJob, error });
-
   if (isLoadingJob) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">Loading...</h1>
         </div>
@@ -161,9 +155,8 @@ const JobDetails = () => {
   }
 
   if (error) {
-    console.error("Query error:", error);
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Error Loading Job</h1>
           <p className="text-gray-600 mb-4">There was an error loading the job details. Please try again.</p>
@@ -176,9 +169,8 @@ const JobDetails = () => {
   }
 
   if (!job) {
-    console.log("No job data available");
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4 py-12">
           <Link to="/explore" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6">
             <ArrowLeft className="h-4 w-4" />
@@ -201,17 +193,8 @@ const JobDetails = () => {
   const resources = job.resources?.map(r => r.content) || [];
   const relatedJobs = job.related_jobs?.map(r => r.content) || [];
 
-  console.log("Rendering job details with:", {
-    tasks,
-    education,
-    certificates,
-    experience,
-    resources,
-    relatedJobs
-  });
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 py-12">
         <Link to="/explore" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6">
           <ArrowLeft className="h-4 w-4" />
