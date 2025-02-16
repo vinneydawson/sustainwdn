@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -42,14 +41,12 @@ interface CareerPathway {
 }
 
 const PathwayJobs = () => {
-  const { pathwayId } = useParams();
+  const { pathwayId } = useParams<{ pathwayId: string }>();
   const [selectedLevel, setSelectedLevel] = useState<JobLevel | null>(null);
 
   const { data: pathway, isLoading: isLoadingPathway, error: pathwayError } = useQuery({
     queryKey: ["career-pathway", pathwayId],
     queryFn: async () => {
-      if (!pathwayId) throw new Error("No pathway ID provided");
-
       const { data: rawData, error } = await supabase
         .from("career_pathways")
         .select("*")
@@ -79,8 +76,6 @@ const PathwayJobs = () => {
   const { data: jobs, isLoading: isLoadingJobs, error: jobsError } = useQuery({
     queryKey: ["pathway-jobs", pathwayId, selectedLevel],
     queryFn: async () => {
-      if (!pathwayId) throw new Error("No pathway ID provided");
-
       let query = supabase
         .from("job_roles")
         .select("*")
@@ -121,19 +116,6 @@ const PathwayJobs = () => {
     { id: 'advanced', label: 'Advanced' }
   ];
 
-  if (!pathwayId) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
-        <div className="container mx-auto px-4 py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8">Pathway not found</h1>
-          <Link to="/explore" className="text-primary-600 hover:text-primary-700">
-            Return to Explore
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   if (isLoadingPathway || isLoadingJobs) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
@@ -160,6 +142,19 @@ const PathwayJobs = () => {
     );
   }
 
+  if (!pathway || !jobs) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8">Pathway not found</h1>
+          <Link to="/explore" className="text-primary-600 hover:text-primary-700">
+            Return to Explore
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
       <div className="container mx-auto px-4 py-12">
@@ -169,10 +164,10 @@ const PathwayJobs = () => {
         </Link>
 
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          {pathway?.title}
+          {pathway.title}
         </h1>
         <p className="text-lg text-gray-600 mb-8">
-          {pathway?.description.content}
+          {pathway.description.content}
         </p>
 
         <div className="flex flex-wrap gap-4 mb-8">
@@ -196,7 +191,7 @@ const PathwayJobs = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {jobs?.map((job) => (
+          {jobs.map((job) => (
             <Card key={job.id} className="p-6 hover:shadow-lg transition-shadow">
               <h3 className="text-xl font-semibold mb-4">{job.title}</h3>
               <p className="text-gray-600 mb-4 text-left">{job.description.content}</p>
