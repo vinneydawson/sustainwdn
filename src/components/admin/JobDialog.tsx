@@ -57,17 +57,14 @@ export function JobDialog({
       certificates_degrees: initialData?.certificates_degrees || {
         education: [],
         certificates: [],
-        experience: "",
+        experience: [],
       },
-      tasks_responsibilities: initialData?.tasks_responsibilities?.task_1?.content || "",
+      tasks_responsibilities: initialData?.tasks_responsibilities || { task_1: { content: "" } },
       resources: initialData?.resources || [],
       related_jobs: initialData?.related_jobs || [],
       projections: initialData?.projections || "",
     },
   });
-
-  const { pathways } = usePathways();
-  const selectedPathwayId = watch("pathway_id");
 
   useEffect(() => {
     if (open) {
@@ -117,9 +114,9 @@ export function JobDialog({
         certificates_degrees: initialData?.certificates_degrees || {
           education: [],
           certificates: [],
-          experience: "",
+          experience: [],
         },
-        tasks_responsibilities: initialData?.tasks_responsibilities?.task_1?.content || "",
+        tasks_responsibilities: initialData?.tasks_responsibilities || { task_1: { content: "" } },
         resources: initialData?.resources || [],
         related_jobs: initialData?.related_jobs || [],
         projections: initialData?.projections || "",
@@ -135,10 +132,17 @@ export function JobDialog({
     
     const formattedCertificates = certificates.map(c => `${c.url}|${c.text}`);
 
-    // Transform tasks into the required format (single task format)
+    // Transform tasks into the required format
+    const taskContent = watch("tasks_responsibilities.task_1.content") || "";
     const formattedTasks = {
-      task_1: { content: data.tasks_responsibilities }
+      task_1: { content: taskContent }
     };
+
+    // Transform experience into array format
+    const experienceContent = watch("certificates_degrees.experience") || [];
+    const formattedExperience = Array.isArray(experienceContent) 
+      ? experienceContent 
+      : [experienceContent];
 
     // Transform related jobs into the required format
     const formattedRelatedJobs = relatedJobs.map(job => ({
@@ -152,7 +156,8 @@ export function JobDialog({
       related_jobs: formattedRelatedJobs,
       certificates_degrees: {
         ...data.certificates_degrees,
-        certificates: formattedCertificates
+        certificates: formattedCertificates,
+        experience: formattedExperience,
       }
     };
 
@@ -266,7 +271,7 @@ export function JobDialog({
               <Label htmlFor="tasks_responsibilities">Tasks + Responsibilities</Label>
               <Textarea
                 id="tasks_responsibilities"
-                {...register("tasks_responsibilities")}
+                {...register("tasks_responsibilities.task_1.content")}
                 placeholder="Enter tasks and responsibilities..."
                 className="min-h-[200px]"
               />
