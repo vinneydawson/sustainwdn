@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
@@ -14,7 +14,17 @@ import Resources from "./pages/Resources";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import React from 'react';
+import React, { useEffect } from 'react';
+
+const ScrollToTop = () => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+
+  return null;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +43,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <ScrollToTop />
             <Navigation />
             <Routes>
               <Route path="/" element={<Index />} />
