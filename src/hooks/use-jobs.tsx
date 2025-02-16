@@ -133,16 +133,15 @@ export function useJobs() {
 
   const reorderJobs = useMutation({
     mutationFn: async (reorderedJobs: JobRole[]) => {
-      const updates = reorderedJobs.map((job, index) => ({
-        id: job.id,
-        display_order: index + 1,
-      }));
+      // For each job, we'll update only its display_order while preserving all other fields
+      for (const [index, job] of reorderedJobs.entries()) {
+        const { error } = await supabase
+          .from("job_roles")
+          .update({ display_order: index + 1 })
+          .eq("id", job.id);
 
-      const { error } = await supabase
-        .from("job_roles")
-        .upsert(updates);
-
-      if (error) throw error;
+        if (error) throw error;
+      }
       return reorderedJobs;
     },
     onSuccess: () => {
