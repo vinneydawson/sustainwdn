@@ -56,28 +56,9 @@
   * {
     @apply border-border;
   }
-  
-  html {
-    @apply h-full;
-  }
-
   body {
-    @apply h-full bg-background text-foreground;
+    @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
-  }
-
-  #root {
-    @apply h-full;
-  }
-
-  /* For pages that should not scroll */
-  .page-container {
-    @apply h-[calc(100vh-64px)] overflow-hidden;
-  }
-
-  /* For pages that might need scrolling */
-  .scrollable-container {
-    @apply h-[calc(100vh-64px)] overflow-y-auto;
   }
 }
 
