@@ -57,39 +57,19 @@
     @apply border-border;
   }
   
-  html, body {
-    @apply h-full overflow-auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  /* Hide scrollbar by default */
-  ::-webkit-scrollbar {
-    width: 0;
-    background: transparent;
-  }
-
-  /* Show scrollbar only when content overflows */
-  .overflow-auto::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .overflow-auto::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .overflow-auto::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full;
-  }
-
-  /* Only show scrollbar on hover */
-  .overflow-auto:hover::-webkit-scrollbar-thumb {
-    @apply bg-gray-400;
+  html {
+    @apply h-full overflow-hidden;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply h-full overflow-hidden bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    position: fixed;
+    width: 100%;
+  }
+
+  #root {
+    @apply h-full overflow-hidden;
   }
 }
 
@@ -99,8 +79,4 @@
 
 .hover-lift {
   @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
-}
-
-#root {
-  @apply h-full;
 }
