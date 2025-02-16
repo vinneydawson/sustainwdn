@@ -18,13 +18,21 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface User {
   id: string;
+  first_name: string | null;
+  last_name: string | null;
   email: string | null;
+  phone_number: string | null;
   role: string;
 }
 
 interface UserRole {
   user_id: string;
   role: string;
+  profiles: {
+    first_name: string | null;
+    last_name: string | null;
+    phone_number: string | null;
+  };
 }
 
 const AdminUsers = () => {
@@ -49,19 +57,31 @@ const AdminUsers = () => {
         throw new Error("Not authorized");
       }
 
-      // Get all user roles
+      // Get all user roles with their profile information
       const { data: userRoles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("user_id, role");
+        .select(`
+          user_id,
+          role,
+          profiles:profiles(
+            first_name,
+            last_name,
+            phone_number
+          )
+        `)
+        .order('created_at', { ascending: false });
       
       if (rolesError) throw rolesError;
 
       const typedUserRoles = userRoles as UserRole[];
 
-      // Return the data with roles
+      // Return the data with roles and profile information
       return typedUserRoles.map((userRole) => ({
         id: userRole.user_id,
-        email: "User " + userRole.user_id.slice(0, 8), // Using a truncated ID as we can't access emails
+        first_name: userRole.profiles?.first_name || '',
+        last_name: userRole.profiles?.last_name || '',
+        email: "user." + userRole.user_id.slice(0, 8) + "@example.com", // Placeholder email since we can't access auth.users
+        phone_number: userRole.profiles?.phone_number || '',
         role: userRole.role,
       }));
     },
@@ -120,7 +140,9 @@ const AdminUsers = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -128,7 +150,13 @@ const AdminUsers = () => {
                 <TableBody>
                   {users?.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell>{user.id}</TableCell>
+                      <TableCell>
+                        {user.first_name || user.last_name 
+                          ? `${user.first_name || ''} ${user.last_name || ''}`
+                          : 'No name provided'}
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.phone_number || 'No phone provided'}</TableCell>
                       <TableCell>
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
