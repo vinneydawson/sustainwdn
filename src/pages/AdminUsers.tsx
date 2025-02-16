@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,17 +30,25 @@ const AdminUsers = () => {
   const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const { data: { users }, error } = await supabase.auth.admin.listUsers();
-      if (error) throw error;
-
-      const { data: roles } = await supabase
+      // First get all user roles
+      const { data: userRoles, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id, role");
+      
+      if (rolesError) throw rolesError;
 
-      return users.map((user) => ({
-        id: user.id,
-        email: user.email,
-        role: roles?.find((r) => r.user_id === user.id)?.role || "user",
+      // Then get user profiles which contain email
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, email");
+        
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      return profiles.map((profile) => ({
+        id: profile.id,
+        email: profile.email || 'No email',
+        role: userRoles?.find((r) => r.user_id === profile.id)?.role || "user",
       }));
     },
   });
