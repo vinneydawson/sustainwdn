@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +35,7 @@ export function useProfile(user: User) {
   const [timezone, setTimezone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const initialLoadRef = useRef(true);
   const { toast } = useToast();
 
   const [debouncedFirstName] = useDebounce(firstName, 1000);
@@ -43,7 +44,7 @@ export function useProfile(user: User) {
   const [debouncedCountry] = useDebounce(country, 1000);
   const [debouncedTimezone] = useDebounce(timezone, 1000);
 
-  const handleSave = async () => {
+  const handleSave = async (showToast = true) => {
     try {
       setIsLoading(true);
 
@@ -70,12 +71,22 @@ export function useProfile(user: User) {
 
       if (authError) throw authError;
 
-      toast({
-        title: "Profile updated",
-        description: "Your changes have been saved.",
-      });
+      if (showToast) {
+        toast({
+          title: "Profile updated",
+          description: "Your changes have been saved.",
+        });
+      }
 
-      fetchProfile();
+      const { data: updatedProfile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+        
+      if (updatedProfile) {
+        setProfile(updatedProfile as Profile);
+      }
     } catch (error: any) {
       toast({
         title: "Error updating profile",
@@ -142,6 +153,10 @@ export function useProfile(user: User) {
 
   useEffect(() => {
     if (!hasLoaded) return; // Don't trigger save on initial load
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return;
+    }
     
     const valueChanged = 
       debouncedFirstName !== profile?.first_name ||
@@ -151,7 +166,7 @@ export function useProfile(user: User) {
       debouncedTimezone !== profile?.timezone;
 
     if (valueChanged) {
-      handleSave();
+      handleSave(true);
     }
   }, [
     hasLoaded,

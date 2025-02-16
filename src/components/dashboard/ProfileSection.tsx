@@ -114,7 +114,7 @@ export function ProfileSection({ user }: { user: User }) {
 
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <Label htmlFor="country">Country</Label>
-              <Select value={country} onValueChange={setCountry}>
+              <Select value={country || undefined} onValueChange={setCountry}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a country" />
                 </SelectTrigger>
@@ -136,7 +136,7 @@ export function ProfileSection({ user }: { user: User }) {
 
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <Label htmlFor="timezone">Timezone</Label>
-              <Select value={timezone} onValueChange={setTimezone}>
+              <Select value={timezone || undefined} onValueChange={setTimezone}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a timezone" />
                 </SelectTrigger>
