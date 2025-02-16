@@ -13,26 +13,30 @@ interface JobRole {
   id: string;
   pathway_id: string;
   title: string;
-  description: string;
+  description: {
+    content: string;
+  };
   level: string;
   salary: string | null;
   certificates_degrees: any | null;
   tasks_responsibilities: any | null;
   licenses: string[] | null;
   job_projections: string[] | null;
-  resources: string[] | null;
-  related_jobs: string[] | null;
+  resources: { content: string; }[] | null;
+  related_jobs: { content: string; }[] | null;
   projections: string | null;
 }
 
 interface CareerPathway {
   id: string;
   title: string;
-  description: string;
+  description: {
+    content: string;
+  };
   icon: string;
   created_at: string;
   updated_at: string;
-  requirements: string[] | null;
+  requirements: { content: string; }[] | null;
   salary_range: string | null;
   skills: string[] | null;
 }
@@ -100,7 +104,7 @@ const PathwayJobs = () => {
           {pathway?.title}
         </h1>
         <p className="text-lg text-gray-600 mb-8">
-          {pathway?.description}
+          {pathway?.description.content}
         </p>
 
         <div className="flex flex-wrap gap-4 mb-8">
@@ -127,7 +131,7 @@ const PathwayJobs = () => {
           {jobs?.map((job) => (
             <Card key={job.id} className="p-6 hover:shadow-lg transition-shadow">
               <h3 className="text-xl font-semibold mb-4">{job.title}</h3>
-              <p className="text-gray-600 mb-4">{job.description}</p>
+              <p className="text-gray-600 mb-4">{job.description.content}</p>
               <p className="text-sm text-primary-600 mb-4">
                 {job.level.charAt(0).toUpperCase() + job.level.slice(1)} Level
               </p>
