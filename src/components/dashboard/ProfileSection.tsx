@@ -19,6 +19,8 @@ interface Profile {
   country: string | null;
   timezone: string | null;
   role: string | null;
+  resume_url: string | null;
+  updated_at: string | null;
 }
 
 export function ProfileSection({ user }: { user: User }) {
@@ -48,7 +50,7 @@ export function ProfileSection({ user }: { user: User }) {
       if (error) throw error;
       
       if (data) {
-        setProfile(data);
+        setProfile(data as Profile);
         setFirstName(data.first_name || "");
         setLastName(data.last_name || "");
         setPhoneNumber(data.phone_number || "");
@@ -144,7 +146,6 @@ export function ProfileSection({ user }: { user: User }) {
   };
 
   const handleCancel = () => {
-    // Reset form to current profile values
     if (profile) {
       setFirstName(profile.first_name || "");
       setLastName(profile.last_name || "");

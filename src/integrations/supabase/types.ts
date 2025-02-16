@@ -148,8 +148,9 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           country: string | null
-          full_name: string | null
+          first_name: string | null
           id: string
+          last_name: string | null
           phone_number: string | null
           resume_url: string | null
           role: string | null
@@ -160,8 +161,9 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           country?: string | null
-          full_name?: string | null
+          first_name?: string | null
           id: string
+          last_name?: string | null
           phone_number?: string | null
           resume_url?: string | null
           role?: string | null
@@ -172,8 +174,9 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           country?: string | null
-          full_name?: string | null
+          first_name?: string | null
           id?: string
+          last_name?: string | null
           phone_number?: string | null
           resume_url?: string | null
           role?: string | null
