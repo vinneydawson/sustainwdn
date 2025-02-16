@@ -58,18 +58,26 @@
   }
   
   html {
-    @apply h-full overflow-hidden;
+    @apply h-full;
   }
 
   body {
-    @apply h-full overflow-hidden bg-background text-foreground;
+    @apply h-full bg-background text-foreground;
     font-family: 'Inter', sans-serif;
-    position: fixed;
-    width: 100%;
   }
 
   #root {
-    @apply h-full overflow-hidden;
+    @apply h-full;
+  }
+
+  /* For pages that should not scroll */
+  .page-container {
+    @apply h-[calc(100vh-64px)] overflow-hidden;
+  }
+
+  /* For pages that might need scrolling */
+  .scrollable-container {
+    @apply h-[calc(100vh-64px)] overflow-y-auto;
   }
 }
 
