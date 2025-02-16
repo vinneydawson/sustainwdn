@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Explore from "./pages/Explore";
 import Resources from "./pages/Resources";
 import Dashboard from "./pages/Dashboard";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import React from 'react';
 
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/explore" element={<Explore />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/auth" element={<Auth />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
