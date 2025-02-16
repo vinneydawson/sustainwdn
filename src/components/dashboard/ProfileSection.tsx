@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Mail, Phone, Upload } from "lucide-react";
+import { Mail, Phone, Upload, Trash2 } from "lucide-react";
 import { useDebounce } from "use-debounce";
 import { ImageCropper } from "./ImageCropper";
 import {
@@ -314,6 +314,44 @@ export function ProfileSection({ user }: { user: User }) {
     fileInputRef.current?.click();
   };
 
+  const handleRemovePhoto = async () => {
+    try {
+      setIsLoading(true);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          avatar_url: null,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (updateError) throw updateError;
+
+      await supabase.auth.updateUser({
+        data: { avatar_url: null }
+      });
+
+      setProfile(prev => prev ? {
+        ...prev,
+        avatar_url: null,
+      } : null);
+
+      toast({
+        title: "Photo removed",
+        description: "Your profile picture has been removed successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error removing photo",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-2xl font-bold mb-2">Profile Information</h2>
@@ -397,16 +435,29 @@ export function ProfileSection({ user }: { user: User }) {
                 </Avatar>
                 <div className="flex-1">
                   <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
-                    <div className="text-center">
-                      <Button 
-                        variant="outline" 
-                        className="w-full max-w-xs"
-                        disabled={isLoading}
-                        onClick={handleUploadClick}
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {isLoading ? "Uploading..." : "Click to upload"}
-                      </Button>
+                    <div className="text-center space-y-2">
+                      <div className="flex gap-2 justify-center">
+                        <Button 
+                          variant="outline" 
+                          className="max-w-xs"
+                          disabled={isLoading}
+                          onClick={handleUploadClick}
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          {isLoading ? "Uploading..." : "Click to upload"}
+                        </Button>
+                        {profile?.avatar_url && (
+                          <Button
+                            variant="outline"
+                            className="max-w-xs"
+                            disabled={isLoading}
+                            onClick={handleRemovePhoto}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Remove photo
+                          </Button>
+                        )}
+                      </div>
                       <Input
                         type="file"
                         accept="image/*"
@@ -415,7 +466,7 @@ export function ProfileSection({ user }: { user: User }) {
                         ref={fileInputRef}
                         disabled={isLoading}
                       />
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-gray-500">
                         JPG, PNG or GIF (max. 5MB)
                       </p>
                     </div>
