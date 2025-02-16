@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { Plus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,12 +31,20 @@ interface JobDialogProps {
   initialData?: JobRole;
 }
 
+interface ResourceLink {
+  url: string;
+  text: string;
+}
+
 export function JobDialog({
   open,
   onOpenChange,
   onSubmit,
   initialData,
 }: JobDialogProps) {
+  const [resources, setResources] = useState<ResourceLink[]>([]);
+  const [certificates, setCertificates] = useState<ResourceLink[]>([]);
+
   const { register, handleSubmit, reset, setValue, watch } = useForm<JobFormData>({
     defaultValues: {
       title: initialData?.title || "",
@@ -63,6 +71,36 @@ export function JobDialog({
 
   useEffect(() => {
     if (open) {
+      // Initialize resources from initialData
+      if (initialData?.resources) {
+        const parsedResources = initialData.resources.map(r => {
+          try {
+            const parts = r.content.split('|');
+            return { url: parts[0], text: parts[1] || parts[0] };
+          } catch {
+            return { url: r.content, text: r.content };
+          }
+        });
+        setResources(parsedResources);
+      } else {
+        setResources([]);
+      }
+
+      // Initialize certificates from initialData
+      if (initialData?.certificates_degrees?.certificates) {
+        const parsedCertificates = initialData.certificates_degrees.certificates.map(c => {
+          try {
+            const parts = c.split('|');
+            return { url: parts[0], text: parts[1] || parts[0] };
+          } catch {
+            return { url: c, text: c };
+          }
+        });
+        setCertificates(parsedCertificates);
+      } else {
+        setCertificates([]);
+      }
+
       reset({
         title: initialData?.title || "",
         description: initialData?.description || { content: "" },
@@ -85,8 +123,52 @@ export function JobDialog({
   }, [open, initialData, reset]);
 
   const handleFormSubmit = (data: JobFormData) => {
-    onSubmit(data);
+    // Transform resources and certificates into the required format
+    const formattedResources = resources.map(r => ({
+      content: `${r.url}|${r.text}`
+    }));
+    
+    const formattedCertificates = certificates.map(c => `${c.url}|${c.text}`);
+
+    const updatedData = {
+      ...data,
+      resources: formattedResources,
+      certificates_degrees: {
+        ...data.certificates_degrees,
+        certificates: formattedCertificates
+      }
+    };
+
+    onSubmit(updatedData);
     onOpenChange(false);
+  };
+
+  const addResource = () => {
+    setResources([...resources, { url: "", text: "" }]);
+  };
+
+  const removeResource = (index: number) => {
+    setResources(resources.filter((_, i) => i !== index));
+  };
+
+  const updateResource = (index: number, field: keyof ResourceLink, value: string) => {
+    const updatedResources = [...resources];
+    updatedResources[index] = { ...updatedResources[index], [field]: value };
+    setResources(updatedResources);
+  };
+
+  const addCertificate = () => {
+    setCertificates([...certificates, { url: "", text: "" }]);
+  };
+
+  const removeCertificate = (index: number) => {
+    setCertificates(certificates.filter((_, i) => i !== index));
+  };
+
+  const updateCertificate = (index: number, field: keyof ResourceLink, value: string) => {
+    const updatedCertificates = [...certificates];
+    updatedCertificates[index] = { ...updatedCertificates[index], [field]: value };
+    setCertificates(updatedCertificates);
   };
 
   const handleArrayInput = (field: keyof JobFormData, value: string) => {
@@ -162,6 +244,46 @@ export function JobDialog({
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="grid gap-2">
+              <Label>Resources</Label>
+              <div className="space-y-4">
+                {resources.map((resource, index) => (
+                  <div key={index} className="flex gap-2 items-start">
+                    <div className="flex-1 space-y-2">
+                      <Input
+                        placeholder="URL"
+                        value={resource.url}
+                        onChange={(e) => updateResource(index, 'url', e.target.value)}
+                      />
+                      <Input
+                        placeholder="Display Text"
+                        value={resource.text}
+                        onChange={(e) => updateResource(index, 'text', e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeResource(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addResource}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Resource
+                </Button>
+              </div>
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="salary">Salary Range</Label>
               <Input
@@ -176,15 +298,6 @@ export function JobDialog({
                 id="projections"
                 {...register("projections")}
                 placeholder="Enter job projections..."
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="resources">Resources (comma-separated)</Label>
-              <Textarea
-                id="resources"
-                onChange={(e) => handleArrayInput("resources", e.target.value)}
-                defaultValue={initialData?.resources?.map(r => r.content).join(", ") || ""}
-                placeholder="Enter resources separated by commas..."
               />
             </div>
             <div className="grid gap-2">
@@ -214,6 +327,46 @@ export function JobDialog({
                 placeholder="Enter job growth projections separated by commas..."
               />
             </div>
+
+            <div className="grid gap-2">
+              <Label>Certificates</Label>
+              <div className="space-y-4">
+                {certificates.map((certificate, index) => (
+                  <div key={index} className="flex gap-2 items-start">
+                    <div className="flex-1 space-y-2">
+                      <Input
+                        placeholder="URL"
+                        value={certificate.url}
+                        onChange={(e) => updateCertificate(index, 'url', e.target.value)}
+                      />
+                      <Input
+                        placeholder="Display Text"
+                        value={certificate.text}
+                        onChange={(e) => updateCertificate(index, 'text', e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeCertificate(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addCertificate}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Certificate
+                </Button>
+              </div>
+            </div>
+
             <div className="grid gap-2">
               <Label>Certificates & Degrees</Label>
               <div className="space-y-4">
@@ -224,15 +377,6 @@ export function JobDialog({
                     onChange={(e) => setValue("certificates_degrees.education", e.target.value.split(',').map(ed => ed.trim()))}
                     defaultValue={initialData?.certificates_degrees?.education?.join(", ") || ""}
                     placeholder="Enter required education separated by commas..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="certificates">Certificates (comma-separated)</Label>
-                  <Textarea
-                    id="certificates"
-                    onChange={(e) => setValue("certificates_degrees.certificates", e.target.value.split(',').map(cert => cert.trim()))}
-                    defaultValue={initialData?.certificates_degrees?.certificates?.join(", ") || ""}
-                    placeholder="Enter required certificates separated by commas..."
                   />
                 </div>
                 <div>
