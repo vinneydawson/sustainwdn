@@ -43,6 +43,16 @@ const parseTasksList = (tasks: string): string[] => {
   return tasks.split('\n').filter(task => task.trim().length > 0);
 };
 
+const isCertificatesDegrees = (value: Json | null): value is CertificatesDegrees => {
+  if (!value || typeof value !== 'object') return false;
+  const certDegrees = value as any;
+  return (
+    Array.isArray(certDegrees.education) &&
+    Array.isArray(certDegrees.certificates) &&
+    Array.isArray(certDegrees.experience)
+  );
+};
+
 const JobDetails = () => {
   const { jobId } = useParams<JobRouteParams>();
   const navigate = useNavigate();
@@ -107,13 +117,17 @@ const JobDetails = () => {
             acc[`task_${index + 1}`] = { content: task };
             return acc;
           }, {} as Record<string, { content: string }>),
-          certificates_degrees: {
-            education: (rawData.certificates_degrees as CertificatesDegrees)?.education || [],
-            certificates: (rawData.certificates_degrees as CertificatesDegrees)?.certificates?.map(cert => {
+          certificates_degrees: isCertificatesDegrees(rawData.certificates_degrees) ? {
+            education: rawData.certificates_degrees.education,
+            certificates: rawData.certificates_degrees.certificates.map(cert => {
               const [text] = cert.split('|');
               return text;
-            }) || [],
-            experience: (rawData.certificates_degrees as CertificatesDegrees)?.experience || []
+            }),
+            experience: rawData.certificates_degrees.experience
+          } : {
+            education: [],
+            certificates: [],
+            experience: []
           },
           career_pathways: transformedCareerPathway
         };
