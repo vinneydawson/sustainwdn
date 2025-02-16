@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -42,6 +41,16 @@ interface CareerPathway {
   skills: string[] | null;
 }
 
+const transformJsonToContent = (value: any): { content: string } => {
+  if (typeof value === 'string') {
+    return { content: value };
+  }
+  if (typeof value === 'object' && value !== null && 'content' in value) {
+    return { content: String(value.content) };
+  }
+  return { content: JSON.stringify(value) };
+};
+
 const PathwayJobs = () => {
   const { pathwayId } = useParams<{ pathwayId: string }>();
   const [selectedLevel, setSelectedLevel] = useState<JobLevel | null>(null);
@@ -57,22 +66,11 @@ const PathwayJobs = () => {
       
       if (error) throw error;
       
-      // Transform the data to match our interface
       return {
         ...data,
-        description: {
-          content: typeof data.description === 'string' 
-            ? data.description 
-            : typeof data.description === 'object' && data.description !== null
-              ? 'content' in data.description
-                ? (data.description as { content: string }).content
-                : JSON.stringify(data.description)
-              : String(data.description)
-        },
+        description: transformJsonToContent(data.description),
         requirements: Array.isArray(data.requirements)
-          ? data.requirements.map(req =>
-              typeof req === 'string' ? { content: req } : req
-            )
+          ? data.requirements.map(req => transformJsonToContent(req))
           : null
       } as CareerPathway;
     },
@@ -95,27 +93,14 @@ const PathwayJobs = () => {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Transform the data to match our interface
       return (data || []).map(job => ({
         ...job,
-        description: {
-          content: typeof job.description === 'string'
-            ? job.description
-            : typeof job.description === 'object' && job.description !== null
-              ? 'content' in job.description
-                ? (job.description as { content: string }).content
-                : JSON.stringify(job.description)
-              : String(job.description)
-        },
+        description: transformJsonToContent(job.description),
         resources: Array.isArray(job.resources)
-          ? job.resources.map(res =>
-              typeof res === 'string' ? { content: res } : res
-            )
+          ? job.resources.map(res => transformJsonToContent(res))
           : null,
         related_jobs: Array.isArray(job.related_jobs)
-          ? job.related_jobs.map(rel =>
-              typeof rel === 'string' ? { content: rel } : rel
-            )
+          ? job.related_jobs.map(rel => transformJsonToContent(rel))
           : null
       })) as JobRole[];
     },
