@@ -89,7 +89,7 @@ const Auth = () => {
           </div>
           <Button 
             type="submit" 
-            className="w-full bg-[#1EAEDB] hover:bg-[#0FA0CE] text-white" 
+            className="w-full bg-primary-600 hover:bg-primary-700 text-white" 
             disabled={isLoading}
           >
             {isLoading
