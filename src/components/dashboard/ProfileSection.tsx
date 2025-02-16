@@ -74,8 +74,10 @@ export function ProfileSection({ user }: { user: User }) {
     debouncedTimezone,
   ]);
 
-  async function fetchProfile() {
+  const fetchProfile = async () => {
     try {
+      const detectedCountry = await detectUserCountry();
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -89,7 +91,7 @@ export function ProfileSection({ user }: { user: User }) {
         setFirstName(data.first_name || DEFAULT_PROFILE.first_name);
         setLastName(data.last_name || DEFAULT_PROFILE.last_name);
         setPhoneNumber(data.phone_number || DEFAULT_PROFILE.phone_number);
-        setCountry(data.country || DEFAULT_PROFILE.country);
+        setCountry(data.country || detectedCountry);
         setTimezone(data.timezone || DEFAULT_PROFILE.timezone);
       } else {
         const { error: insertError } = await supabase
@@ -99,7 +101,7 @@ export function ProfileSection({ user }: { user: User }) {
             first_name: DEFAULT_PROFILE.first_name,
             last_name: DEFAULT_PROFILE.last_name,
             phone_number: DEFAULT_PROFILE.phone_number,
-            country: DEFAULT_PROFILE.country,
+            country: detectedCountry,
             timezone: DEFAULT_PROFILE.timezone,
           })
           .select()
@@ -110,7 +112,7 @@ export function ProfileSection({ user }: { user: User }) {
         setFirstName(DEFAULT_PROFILE.first_name);
         setLastName(DEFAULT_PROFILE.last_name);
         setPhoneNumber(DEFAULT_PROFILE.phone_number);
-        setCountry(DEFAULT_PROFILE.country);
+        setCountry(detectedCountry);
         setTimezone(DEFAULT_PROFILE.timezone);
       }
     } catch (error: any) {
@@ -120,7 +122,7 @@ export function ProfileSection({ user }: { user: User }) {
         variant: "destructive",
       });
     }
-  }
+  };
 
   const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -378,58 +380,3 @@ export function ProfileSection({ user }: { user: User }) {
     </div>
   );
 }
-
-// Update the useEffect for initial profile fetch to include country detection
-useEffect(() => {
-  const initializeProfile = async () => {
-    try {
-      const detectedCountry = await detectUserCountry();
-      
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      
-      if (data) {
-        setProfile(data as Profile);
-        setFirstName(data.first_name || DEFAULT_PROFILE.first_name);
-        setLastName(data.last_name || DEFAULT_PROFILE.last_name);
-        setPhoneNumber(data.phone_number || DEFAULT_PROFILE.phone_number);
-        setCountry(data.country || detectedCountry);
-        setTimezone(data.timezone || DEFAULT_PROFILE.timezone);
-      } else {
-        const { error: insertError } = await supabase
-          .from("profiles")
-          .insert({
-            id: user.id,
-            first_name: DEFAULT_PROFILE.first_name,
-            last_name: DEFAULT_PROFILE.last_name,
-            phone_number: DEFAULT_PROFILE.phone_number,
-            country: detectedCountry,
-            timezone: DEFAULT_PROFILE.timezone,
-          })
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-        
-        setFirstName(DEFAULT_PROFILE.first_name);
-        setLastName(DEFAULT_PROFILE.last_name);
-        setPhoneNumber(DEFAULT_PROFILE.phone_number);
-        setCountry(detectedCountry);
-        setTimezone(DEFAULT_PROFILE.timezone);
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error fetching profile",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  initializeProfile();
-}, [user]);
