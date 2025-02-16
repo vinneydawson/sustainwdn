@@ -38,17 +38,22 @@ const transformContent = (value: any): { content: string } => {
 };
 
 const parseTasksList = (tasks: TasksResponsibilities): string[] => {
-  return Object.values(tasks).map(task => task.content);
+  console.log("Parsing tasks:", tasks);
+  return Object.values(tasks || {}).map(task => task.content);
 };
 
 const isCertificatesDegrees = (value: Json | null): value is CertificatesDegreesData => {
-  if (!value || typeof value !== 'object') return false;
+  if (!value || typeof value !== 'object') {
+    console.log("Invalid certificates_degrees value:", value);
+    return false;
+  }
   const certDegrees = value as any;
-  return (
-    Array.isArray(certDegrees.education) &&
+  const isValid = Array.isArray(certDegrees.education) &&
     Array.isArray(certDegrees.certificates) &&
-    Array.isArray(certDegrees.experience)
-  );
+    Array.isArray(certDegrees.experience);
+  
+  console.log("Certificates and degrees validation:", { value, isValid });
+  return isValid;
 };
 
 const JobDetails = () => {
@@ -97,8 +102,10 @@ const JobDetails = () => {
         } : null;
 
         // Get tasks and responsibilities
-        const tasks = rawData.tasks_responsibilities as TasksResponsibilities || {};
+        const tasks = rawData.tasks_responsibilities || {};
         const tasksList = parseTasksList(tasks);
+
+        console.log("Tasks list:", tasksList);
 
         // Transform job role data
         const transformedJob = {
@@ -127,7 +134,7 @@ const JobDetails = () => {
         };
 
         console.log("Transformed job data:", transformedJob);
-        return transformedJob as JobRole;
+        return transformedJob;
       } catch (error) {
         console.error("Error in job query:", error);
         throw error;
@@ -139,6 +146,8 @@ const JobDetails = () => {
     gcTime: 1000 * 60 * 30,
     enabled: !!jobId,
   });
+
+  console.log("Current job state:", { job, isLoadingJob, error });
 
   if (isLoadingJob) {
     return (
@@ -166,6 +175,7 @@ const JobDetails = () => {
   }
 
   if (!job) {
+    console.log("No job data available");
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         <div className="container mx-auto px-4 py-12">
@@ -189,6 +199,15 @@ const JobDetails = () => {
   const experience = job.certificates_degrees?.experience || [];
   const resources = job.resources?.map(r => r.content) || [];
   const relatedJobs = job.related_jobs?.map(r => r.content) || [];
+
+  console.log("Rendering job details with:", {
+    tasks,
+    education,
+    certificates,
+    experience,
+    resources,
+    relatedJobs
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
