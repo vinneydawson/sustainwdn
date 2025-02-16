@@ -29,6 +29,8 @@ import { PathwayDialog } from "@/components/admin/PathwayDialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { CareerPathway } from "@/types/job";
 
+type PathwayFormData = Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>;
+
 const AdminPathways = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -50,7 +52,7 @@ const AdminPathways = () => {
   });
 
   const createPathway = useMutation({
-    mutationFn: async (newPathway: Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (newPathway: PathwayFormData) => {
       const { data, error } = await supabase
         .from("career_pathways")
         .insert([{
@@ -80,14 +82,14 @@ const AdminPathways = () => {
   });
 
   const updatePathway = useMutation({
-    mutationFn: async ({ id, ...pathway }: CareerPathway) => {
+    mutationFn: async (pathway: PathwayFormData & { id: string }) => {
       const { data, error } = await supabase
         .from("career_pathways")
         .update({
           ...pathway,
           description: { content: pathway.description.content },
         })
-        .eq("id", id)
+        .eq("id", pathway.id)
         .select()
         .single();
 
@@ -135,7 +137,7 @@ const AdminPathways = () => {
     },
   });
 
-  const handleSubmit = (data: Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>) => {
+  const handleSubmit = (data: PathwayFormData) => {
     if (selectedPathway) {
       updatePathway.mutate({ ...data, id: selectedPathway.id });
     } else {
