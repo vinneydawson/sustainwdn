@@ -168,22 +168,17 @@ export function ProfileSection({ user }: { user: User }) {
           </div>
 
           <div className="grid gap-6 max-w-2xl">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">
-                  Name <span className="text-red-500">*</span>
-                </Label>
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
+              <Label htmlFor="firstName">
+                Name <span className="text-red-500">*</span>
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   id="firstName"
                   placeholder="Vinney"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName" className="invisible">
-                  Last Name
-                </Label>
                 <Input
                   id="lastName"
                   placeholder="Dawson"
@@ -193,7 +188,7 @@ export function ProfileSection({ user }: { user: User }) {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <Label htmlFor="email">
                 Email address <span className="text-red-500">*</span>
               </Label>
@@ -209,7 +204,7 @@ export function ProfileSection({ user }: { user: User }) {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <Label htmlFor="phone">Phone number</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -224,13 +219,15 @@ export function ProfileSection({ user }: { user: User }) {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>
-                Your photo <span className="text-red-500">*</span>
-              </Label>
-              <p className="text-sm text-gray-500">
-                This will be displayed on your profile.
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
+              <div>
+                <Label>
+                  Your photo <span className="text-red-500">*</span>
+                </Label>
+                <p className="text-sm text-gray-500">
+                  This will be displayed on your profile.
+                </p>
+              </div>
               <div className="flex items-center gap-6">
                 <Avatar className="h-16 w-16">
                   <AvatarImage src={profile?.avatar_url} />
@@ -261,7 +258,7 @@ export function ProfileSection({ user }: { user: User }) {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <Label htmlFor="role">Role</Label>
               <Input
                 id="role"
@@ -271,7 +268,7 @@ export function ProfileSection({ user }: { user: User }) {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <Label htmlFor="country">Country</Label>
               <Input
                 id="country"
@@ -281,7 +278,7 @@ export function ProfileSection({ user }: { user: User }) {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] items-center gap-4">
               <Label htmlFor="timezone">Timezone</Label>
               <Input
                 id="timezone"
