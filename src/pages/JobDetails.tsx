@@ -9,18 +9,20 @@ interface JobRole {
   id: string;
   pathway_id: string;
   title: string;
-  description: string;
+  description: {
+    content: string;
+  };
   level: string;
   certificates_degrees: {
     education?: string[];
     certificates?: string[];
     experience?: string[];
   } | null;
-  tasks_responsibilities: Record<string, string> | null;
+  tasks_responsibilities: Record<string, { content: string }> | null;
   licenses: string[] | null;
   job_projections: string[] | null;
-  resources: string[] | null;
-  related_jobs: string[] | null;
+  resources: { content: string; }[] | null;
+  related_jobs: { content: string; }[] | null;
   salary: string | null;
   projections: string | null;
   career_pathways: CareerPathway;
@@ -29,11 +31,13 @@ interface JobRole {
 interface CareerPathway {
   id: string;
   title: string;
-  description: string;
+  description: {
+    content: string;
+  };
   icon: string;
   created_at: string;
   updated_at: string;
-  requirements: string[] | null;
+  requirements: { content: string; }[] | null;
   salary_range: string | null;
   skills: string[] | null;
 }
@@ -82,10 +86,12 @@ const JobDetails = () => {
     );
   }
 
-  const tasks = job.tasks_responsibilities ? Object.values(job.tasks_responsibilities) : [];
+  const tasks = job.tasks_responsibilities ? Object.values(job.tasks_responsibilities).map(t => t.content) : [];
   const education = job.certificates_degrees?.education || [];
   const certificates = job.certificates_degrees?.certificates || [];
   const experience = job.certificates_degrees?.experience || [];
+  const resources = job.resources?.map(r => r.content) || [];
+  const relatedJobs = job.related_jobs?.map(r => r.content) || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
@@ -107,7 +113,7 @@ const JobDetails = () => {
           <div className="space-y-8">
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Overview</h2>
-              <p className="text-gray-600">{job.description}</p>
+              <p className="text-gray-600">{job.description.content}</p>
             </section>
 
             {tasks.length > 0 && (
@@ -168,22 +174,22 @@ const JobDetails = () => {
               </section>
             )}
 
-            {job.resources && job.resources.length > 0 && (
+            {resources.length > 0 && (
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Resources</h2>
                 <ul className="list-disc pl-6 space-y-2">
-                  {job.resources.map((resource, index) => (
+                  {resources.map((resource, index) => (
                     <li key={index} className="text-gray-600">{resource}</li>
                   ))}
                 </ul>
               </section>
             )}
 
-            {job.related_jobs && job.related_jobs.length > 0 && (
+            {relatedJobs.length > 0 && (
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Related Jobs</h2>
                 <ul className="list-disc pl-6 space-y-2">
-                  {job.related_jobs.map((relatedJob, index) => (
+                  {relatedJobs.map((relatedJob, index) => (
                     <li key={index} className="text-gray-600">{relatedJob}</li>
                   ))}
                 </ul>

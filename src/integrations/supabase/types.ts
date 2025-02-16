@@ -39,10 +39,10 @@ export type Database = {
       career_pathways: {
         Row: {
           created_at: string
-          description: string
+          description: Json
           icon: string
           id: string
-          requirements: string[] | null
+          requirements: Json[] | null
           salary_range: string | null
           skills: string[] | null
           title: string
@@ -50,10 +50,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          description: string
+          description: Json
           icon: string
           id?: string
-          requirements?: string[] | null
+          requirements?: Json[] | null
           salary_range?: string | null
           skills?: string[] | null
           title: string
@@ -61,14 +61,44 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          description?: string
+          description?: Json
           icon?: string
           id?: string
-          requirements?: string[] | null
+          requirements?: Json[] | null
           salary_range?: string | null
           skills?: string[] | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      cms_audit_logs: {
+        Row: {
+          action: string
+          changes: Json
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          changes: Json
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          changes?: Json
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -109,15 +139,15 @@ export type Database = {
         Row: {
           certificates_degrees: Json | null
           created_at: string
-          description: string
+          description: Json
           id: string
           job_projections: string[] | null
           level: string
           licenses: string[] | null
           pathway_id: string | null
           projections: string | null
-          related_jobs: string[] | null
-          resources: string[] | null
+          related_jobs: Json[] | null
+          resources: Json[] | null
           salary: string | null
           tasks_responsibilities: Json | null
           title: string
@@ -126,15 +156,15 @@ export type Database = {
         Insert: {
           certificates_degrees?: Json | null
           created_at?: string
-          description: string
+          description: Json
           id?: string
           job_projections?: string[] | null
           level: string
           licenses?: string[] | null
           pathway_id?: string | null
           projections?: string | null
-          related_jobs?: string[] | null
-          resources?: string[] | null
+          related_jobs?: Json[] | null
+          resources?: Json[] | null
           salary?: string | null
           tasks_responsibilities?: Json | null
           title: string
@@ -143,15 +173,15 @@ export type Database = {
         Update: {
           certificates_degrees?: Json | null
           created_at?: string
-          description?: string
+          description?: Json
           id?: string
           job_projections?: string[] | null
           level?: string
           licenses?: string[] | null
           pathway_id?: string | null
           projections?: string | null
-          related_jobs?: string[] | null
-          resources?: string[] | null
+          related_jobs?: Json[] | null
+          resources?: Json[] | null
           salary?: string | null
           tasks_responsibilities?: Json | null
           title?: string
