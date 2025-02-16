@@ -11,8 +11,12 @@ interface JobRole {
   title: string;
   description: string;
   level: string;
-  certificates_degrees: any | null;
-  tasks_responsibilities: any | null;
+  certificates_degrees: {
+    education?: string[];
+    certificates?: string[];
+    experience?: string[];
+  } | null;
+  tasks_responsibilities: Record<string, string> | null;
   licenses: string[] | null;
   job_projections: string[] | null;
   resources: string[] | null;
@@ -110,7 +114,7 @@ const JobDetails = () => {
               <section>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Tasks + Responsibilities</h2>
                 <ul className="list-disc pl-6 space-y-2">
-                  {tasks.map((task, index) => (
+                  {tasks.map((task: string, index) => (
                     <li key={index} className="text-gray-600">{task}</li>
                   ))}
                 </ul>
