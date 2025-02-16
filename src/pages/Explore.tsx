@@ -66,8 +66,8 @@ const Explore = () => {
                 </div>
                 <p className="text-gray-600 mb-4">{pathway.description}</p>
                 <Link to={`/explore/pathway/${pathway.id}`}>
-                  <Button variant="default" size="sm" className="w-full">
-                    View Career Opportunities
+                  <Button variant="secondary" size="sm" className="w-full">
+                    View Careers
                   </Button>
                 </Link>
               </Card>
