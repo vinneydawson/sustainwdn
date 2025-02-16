@@ -2,11 +2,11 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { Fish, Wind, Banknote, Cpu, Droplet, LucideIcon } from "lucide-react";
+import { Fish, Wind, Banknote, Cpu, Droplet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
-const iconMap: { [key: string]: LucideIcon } = {
+const iconMap: { [key: string]: React.ComponentType } = {
   Fish,
   Wind,
   Banknote,
@@ -18,7 +18,6 @@ interface CareerPathway {
   id: string;
   title: string;
   description: string;
-  level: string;
   icon: string;
 }
 
@@ -54,7 +53,6 @@ const Explore = () => {
           Discover career opportunities in sustainability and clean energy
         </p>
 
-        {/* Career Pathways Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pathways?.map((pathway) => {
             const IconComponent = iconMap[pathway.icon];
