@@ -27,13 +27,11 @@ export function PathwayDialog({
   onSubmit,
   initialData,
 }: PathwayDialogProps) {
-  const { register, handleSubmit, reset, watch } = useForm<Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>>({
+  const { register, handleSubmit, reset } = useForm<Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>>({
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || { content: "" },
       icon: initialData?.icon || "BookOpen",
-      salary_range: initialData?.salary_range || "",
-      skills: initialData?.skills || [],
       requirements: initialData?.requirements || null,
     },
   });
@@ -44,32 +42,21 @@ export function PathwayDialog({
         title: initialData?.title || "",
         description: initialData?.description || { content: "" },
         icon: initialData?.icon || "BookOpen",
-        salary_range: initialData?.salary_range || "",
-        skills: initialData?.skills || [],
         requirements: initialData?.requirements || null,
       });
     }
   }, [open, initialData, reset]);
 
   const handleFormSubmit = (data: any) => {
-    // Convert skills to array, handling both string and array inputs
-    const skillsArray = typeof data.skills === 'string' 
-      ? data.skills.split(',').map((skill: string) => skill.trim()).filter(Boolean)
-      : Array.isArray(data.skills) 
-        ? data.skills 
-        : [];
-
     const formattedData = {
       ...data,
-      skills: skillsArray,
+      skills: [],
+      salary_range: null,
     };
     
     onSubmit(formattedData);
     onOpenChange(false);
   };
-
-  const skillsValue = watch("skills");
-  const displaySkills = Array.isArray(skillsValue) ? skillsValue.join(", ") : skillsValue;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -97,29 +84,15 @@ export function PathwayDialog({
                 required
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="salary_range">Salary Range</Label>
-              <Input
-                id="salary_range"
-                {...register("salary_range")}
-                placeholder="e.g. $50,000 - $80,000"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="skills">Skills (comma-separated)</Label>
-              <Input
-                id="skills"
-                {...register("skills")}
-                defaultValue={displaySkills}
-                placeholder="e.g. Project Management, Leadership, Communication"
-              />
-            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button 
+              type="submit"
+              className="bg-primary-600 hover:bg-primary-700"
+            >
               {initialData ? "Save Changes" : "Add Pathway"}
             </Button>
           </DialogFooter>
