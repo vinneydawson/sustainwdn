@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { LayoutDashboard, BookOpen, Briefcase, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -28,7 +27,7 @@ const AdminDashboard = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4 py-12">
           <div className="flex items-center gap-3 mb-8">
             <LayoutDashboard className="h-8 w-8 text-primary-600" />
