@@ -20,9 +20,7 @@ const Auth = () => {
     // Check URL parameters for signup flag
     const params = new URLSearchParams(location.search);
     const signupParam = params.get('signup');
-    if (signupParam === 'true') {
-      setIsSignUp(true);
-    }
+    setIsSignUp(signupParam === 'true');
   }, [location]);
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -57,6 +55,11 @@ const Auth = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const toggleAuthMode = () => {
+    const newSignUpValue = !isSignUp;
+    navigate(`/auth?signup=${newSignUpValue}`);
   };
 
   return (
@@ -95,7 +98,7 @@ const Auth = () => {
         <div className="mt-4 text-center">
           <button
             type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={toggleAuthMode}
             className="text-sm text-primary-600 hover:underline"
           >
             {isSignUp
