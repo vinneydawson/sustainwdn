@@ -74,6 +74,7 @@ export function PathwayDialog({
                 id="title"
                 {...register("title")}
                 required
+                placeholder="e.g. Software Development, Data Science, UI/UX Design"
               />
             </div>
             <div className="grid gap-2">
@@ -82,6 +83,7 @@ export function PathwayDialog({
                 id="description"
                 {...register("description.content")}
                 required
+                placeholder="Enter a detailed description of the career pathway..."
               />
             </div>
           </div>
