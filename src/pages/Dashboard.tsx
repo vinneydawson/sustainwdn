@@ -2,14 +2,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Target, BookOpen, Award } from "lucide-react";
+import { Target, BookOpen, Award, LayoutDashboard, User, File } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileSection } from "@/components/dashboard/ProfileSection";
 import { FileUploadSection } from "@/components/dashboard/FileUploadSection";
-import { User } from "@supabase/supabase-js";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Dashboard = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,43 +35,61 @@ const Dashboard = () => {
           Your SustainWDN™ Dashboard
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6">
-            <div className="text-primary-600 mb-4">
-              <Target className="h-8 w-8" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Progress</h3>
-            <p className="text-2xl font-bold text-primary-600">60%</p>
-            <p className="text-gray-600">Career path completion</p>
-          </Card>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="files" className="flex items-center gap-2">
+              <File className="h-4 w-4" />
+              <span className="hidden sm:inline">My Files</span>
+            </TabsTrigger>
+          </TabsList>
 
-          <Card className="p-6">
-            <div className="text-primary-600 mb-4">
-              <BookOpen className="h-8 w-8" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Resources</h3>
-            <p className="text-2xl font-bold text-primary-600">12</p>
-            <p className="text-gray-600">Materials completed</p>
-          </Card>
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="p-6">
+                <div className="text-primary-600 mb-4">
+                  <Target className="h-8 w-8" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Progress</h3>
+                <p className="text-2xl font-bold text-primary-600">60%</p>
+                <p className="text-gray-600">Career path completion</p>
+              </Card>
 
-          <Card className="p-6">
-            <div className="text-primary-600 mb-4">
-              <Award className="h-8 w-8" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Achievements</h3>
-            <p className="text-2xl font-bold text-primary-600">5</p>
-            <p className="text-gray-600">Milestones reached</p>
-          </Card>
-        </div>
+              <Card className="p-6">
+                <div className="text-primary-600 mb-4">
+                  <BookOpen className="h-8 w-8" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Resources</h3>
+                <p className="text-2xl font-bold text-primary-600">12</p>
+                <p className="text-gray-600">Materials completed</p>
+              </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="w-full">
+              <Card className="p-6">
+                <div className="text-primary-600 mb-4">
+                  <Award className="h-8 w-8" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Achievements</h3>
+                <p className="text-2xl font-bold text-primary-600">5</p>
+                <p className="text-gray-600">Milestones reached</p>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="profile">
             <ProfileSection user={user} />
-          </div>
-          <div className="w-full">
+          </TabsContent>
+
+          <TabsContent value="files">
             <FileUploadSection user={user} />
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
