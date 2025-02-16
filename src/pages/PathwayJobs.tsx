@@ -47,19 +47,23 @@ const PathwayJobs = () => {
   const { data: pathway } = useQuery({
     queryKey: ["career-pathway", pathwayId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: rawData, error } = await supabase
         .from("career_pathways")
         .select("*")
         .eq("id", pathwayId)
         .single();
       if (error) throw error;
+      
+      const data = rawData as any;
       return {
         ...data,
-        description: typeof data.description === 'string' 
+        description: typeof data.description === 'string'
           ? { content: data.description }
-          : data.description,
+          : typeof data.description === 'object' && 'content' in data.description
+            ? data.description
+            : { content: JSON.stringify(data.description) },
         requirements: Array.isArray(data.requirements)
-          ? data.requirements.map(req => 
+          ? data.requirements.map((req: any) =>
               typeof req === 'string' ? { content: req } : req
             )
           : null
@@ -79,20 +83,23 @@ const PathwayJobs = () => {
         query = query.eq("level", selectedLevel);
       }
       
-      const { data, error } = await query;
+      const { data: rawData, error } = await query;
       if (error) throw error;
-      return data.map(job => ({
-        ...job,
-        description: typeof job.description === 'string' 
-          ? { content: job.description }
-          : job.description,
-        resources: Array.isArray(job.resources)
-          ? job.resources.map(res => 
+
+      return (rawData as any[]).map(data => ({
+        ...data,
+        description: typeof data.description === 'string'
+          ? { content: data.description }
+          : typeof data.description === 'object' && 'content' in data.description
+            ? data.description
+            : { content: JSON.stringify(data.description) },
+        resources: Array.isArray(data.resources)
+          ? data.resources.map((res: any) =>
               typeof res === 'string' ? { content: res } : res
             )
           : null,
-        related_jobs: Array.isArray(job.related_jobs)
-          ? job.related_jobs.map(rel => 
+        related_jobs: Array.isArray(data.related_jobs)
+          ? data.related_jobs.map((rel: any) =>
               typeof rel === 'string' ? { content: rel } : rel
             )
           : null

@@ -49,7 +49,7 @@ const JobDetails = () => {
   const { data: job, isLoading: isLoadingJob } = useQuery({
     queryKey: ["job-role", jobId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: rawData, error } = await supabase
         .from("job_roles")
         .select(`
           *,
@@ -59,34 +59,40 @@ const JobDetails = () => {
         .maybeSingle();
       
       if (error) throw error;
-      if (!data) return null;
+      if (!rawData) return null;
+
+      const data = rawData as any;
 
       // Transform career pathway data
       const transformedCareerPathway = {
         ...data.career_pathways,
         description: typeof data.career_pathways.description === 'string'
           ? { content: data.career_pathways.description }
-          : data.career_pathways.description,
+          : typeof data.career_pathways.description === 'object' && 'content' in data.career_pathways.description
+            ? data.career_pathways.description
+            : { content: JSON.stringify(data.career_pathways.description) },
         requirements: Array.isArray(data.career_pathways.requirements)
-          ? data.career_pathways.requirements.map(req =>
+          ? data.career_pathways.requirements.map((req: any) =>
               typeof req === 'string' ? { content: req } : req
             )
           : null
       };
 
       // Transform job role data
-      return {
+      const transformedJob = {
         ...data,
         description: typeof data.description === 'string'
           ? { content: data.description }
-          : data.description,
+          : typeof data.description === 'object' && 'content' in data.description
+            ? data.description
+            : { content: JSON.stringify(data.description) },
         resources: Array.isArray(data.resources)
-          ? data.resources.map(res =>
+          ? data.resources.map((res: any) =>
               typeof res === 'string' ? { content: res } : res
             )
           : null,
         related_jobs: Array.isArray(data.related_jobs)
-          ? data.related_jobs.map(rel =>
+          ? data.related_jobs.map((rel: any) =>
               typeof rel === 'string' ? { content: rel } : rel
             )
           : null,
@@ -99,7 +105,9 @@ const JobDetails = () => {
             )
           : null,
         career_pathways: transformedCareerPathway
-      } as JobRole;
+      };
+
+      return transformedJob as JobRole;
     },
   });
 
