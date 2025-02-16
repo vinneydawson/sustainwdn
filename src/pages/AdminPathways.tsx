@@ -65,7 +65,7 @@ const AdminPathways = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
         <div className="container mx-auto px-4 py-12">
           <div className="flex items-center mb-4">
             <Link to="/admin">

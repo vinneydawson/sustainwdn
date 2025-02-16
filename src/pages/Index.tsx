@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -6,7 +5,7 @@ import { ArrowRight, Leaf, BookOpen, Target } from "lucide-react";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
       {/* Hero Section */}
       <header className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center animate-fadeIn">

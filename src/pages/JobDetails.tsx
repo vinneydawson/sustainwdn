@@ -146,7 +146,7 @@ const JobDetails = () => {
 
   if (isLoadingJob) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">Loading...</h1>
         </div>
@@ -156,7 +156,7 @@ const JobDetails = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Error Loading Job</h1>
           <p className="text-gray-600 mb-4">There was an error loading the job details. Please try again.</p>
@@ -170,7 +170,7 @@ const JobDetails = () => {
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
         <div className="container mx-auto px-4 py-12">
           <Link to="/explore" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6">
             <ArrowLeft className="h-4 w-4" />
@@ -194,7 +194,7 @@ const JobDetails = () => {
   const relatedJobs = job.related_jobs?.map(r => r.content) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
       <div className="container mx-auto px-4 py-12">
         <Link to="/explore" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6">
           <ArrowLeft className="h-4 w-4" />
