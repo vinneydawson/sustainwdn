@@ -14,11 +14,13 @@ const iconMap: { [key: string]: LucideIcon } = {
   Cpu,
 };
 
+type JobLevel = "entry" | "mid" | "advanced";
+
 interface CareerPathway {
   id: string;
   title: string;
   description: string;
-  level: string;
+  level: JobLevel;
   salary_range: string | null;
   requirements: string[] | null;
   skills: string[] | null;
@@ -26,7 +28,7 @@ interface CareerPathway {
 }
 
 const Explore = () => {
-  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<JobLevel | null>(null);
 
   const { data: careerPaths, isLoading } = useQuery({
     queryKey: ["career-paths", selectedLevel],
@@ -45,7 +47,7 @@ const Explore = () => {
     },
   });
 
-  const levels = [
+  const levels: Array<{ id: JobLevel; label: string }> = [
     { id: 'entry', label: 'Entry Level' },
     { id: 'mid', label: 'Mid Level' },
     { id: 'advanced', label: 'Advanced' }
