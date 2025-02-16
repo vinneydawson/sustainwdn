@@ -11,22 +11,40 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Dashboard = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          navigate('/auth?signup=false');
+          return;
+        }
+        setUser(user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
         navigate('/auth?signup=false');
-        return;
+      } finally {
+        setIsLoading(false);
       }
-      setUser(user);
     };
 
     getUser();
   }, [navigate]);
 
-  if (!user) return null;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex items-center justify-center">
+        <div className="text-primary-600">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
