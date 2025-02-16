@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import ReactCrop, { type Crop } from 'react-image-crop';
+import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -13,6 +13,26 @@ interface ImageCropperProps {
   onClose: () => void;
 }
 
+function centerAspectCrop(
+  mediaWidth: number,
+  mediaHeight: number,
+  aspect: number,
+) {
+  return centerCrop(
+    makeAspectCrop(
+      {
+        unit: '%',
+        width: 90,
+      },
+      aspect,
+      mediaWidth,
+      mediaHeight,
+    ),
+    mediaWidth,
+    mediaHeight,
+  )
+}
+
 export function ImageCropper({
   imageUrl,
   aspect = 1,
@@ -20,63 +40,63 @@ export function ImageCropper({
   isOpen,
   onClose
 }: ImageCropperProps) {
-  const [crop, setCrop] = useState<Crop>({
-    unit: '%',
-    width: 90,
-    height: 90,
-    x: 5,
-    y: 5
-  });
+  const [crop, setCrop] = useState<Crop>();
   const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null);
 
-  const onImageLoad = (image: HTMLImageElement) => {
-    setImageRef(image);
-    
-    // Set initial centered crop
-    const width = Math.min(90, (image.width / image.height) * 90);
-    const height = Math.min(90, (image.height / image.width) * 90);
-    const x = (100 - width) / 2;
-    const y = (100 - height) / 2;
-    
-    setCrop({
-      unit: '%',
-      width,
-      height,
-      x,
-      y
-    });
+  const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    setImageRef(e.currentTarget);
+    setCrop(centerAspectCrop(width, height, aspect));
   };
 
   const getCroppedImg = () => {
-    if (!imageRef) return;
+    if (!imageRef || !crop) return;
 
     const canvas = document.createElement('canvas');
     const scaleX = imageRef.naturalWidth / imageRef.width;
     const scaleY = imageRef.naturalHeight / imageRef.height;
-    canvas.width = crop.width! * scaleX;
-    canvas.height = crop.height! * scaleY;
-    const ctx = canvas.getContext('2d');
 
+    // Calculate the actual crop dimensions
+    const cropWidth = (crop.width * imageRef.width * scaleX) / 100;
+    const cropHeight = (crop.height * imageRef.height * scaleY) / 100;
+    const cropX = (crop.x * imageRef.width * scaleX) / 100;
+    const cropY = (crop.y * imageRef.height * scaleY) / 100;
+
+    // Set canvas dimensions to match the cropped area
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Set the background to white (this prevents transparency becoming black)
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the cropped image
     ctx.drawImage(
       imageRef,
-      crop.x! * scaleX,
-      crop.y! * scaleY,
-      crop.width! * scaleX,
-      crop.height! * scaleY,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
       0,
       0,
-      crop.width! * scaleX,
-      crop.height! * scaleY
+      cropWidth,
+      cropHeight
     );
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        onCropComplete(blob);
-        onClose();
-      }
-    }, 'image/jpeg', 0.95);
+    // Convert to blob with JPEG format
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          onCropComplete(blob);
+          onClose();
+        }
+      },
+      'image/jpeg',
+      1 // Maximum quality
+    );
   };
 
   return (
@@ -91,16 +111,17 @@ export function ImageCropper({
         <div className="flex flex-col items-center gap-4">
           <ReactCrop
             crop={crop}
-            onChange={(c) => setCrop(c)}
+            onChange={(_, percentCrop) => setCrop(percentCrop)}
             aspect={aspect}
             circularCrop
+            minWidth={100}
           >
             <img
               ref={setImageRef}
               src={imageUrl}
               alt="Crop me"
               className="max-h-[60vh] object-contain"
-              onLoad={(e) => onImageLoad(e.currentTarget)}
+              onLoad={onImageLoad}
             />
           </ReactCrop>
           <div className="flex justify-end gap-2 w-full">
