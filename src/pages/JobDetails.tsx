@@ -1,7 +1,7 @@
 
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/card";
+import { Button } from "@/components/ui/button"; // Fixed import path
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft } from "lucide-react";
 
