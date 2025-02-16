@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -8,17 +7,17 @@ import { JobSection } from "@/components/job-details/JobSection";
 import { JobListSection } from "@/components/job-details/JobListSection";
 import { JobRole } from "@/types/job";
 
+type JobRouteParams = {
+  jobId: string;
+}
+
 const JobDetails = () => {
-  const { jobId } = useParams<{ jobId?: string }>();
+  const { jobId } = useParams<JobRouteParams>();
   const navigate = useNavigate();
 
   const { data: job, isLoading: isLoadingJob } = useQuery({
     queryKey: ["job-role", jobId],
     queryFn: async () => {
-      if (!jobId) {
-        throw new Error("Job ID is required");
-      }
-
       const { data: rawData, error } = await supabase
         .from("job_roles")
         .select(`
@@ -92,21 +91,8 @@ const JobDetails = () => {
 
       return transformedJob as JobRole;
     },
-    enabled: !!jobId, // Only run the query if we have a jobId
+    enabled: !!jobId,
   });
-
-  if (!jobId) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
-        <div className="container mx-auto px-4 py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Invalid Job ID</h1>
-          <Button variant="default" onClick={() => navigate("/explore")}>
-            Back to Explore
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   if (isLoadingJob) {
     return (
