@@ -65,11 +65,13 @@ const Explore = () => {
                   <h3 className="text-xl font-semibold">{pathway.title}</h3>
                 </div>
                 <p className="text-gray-600 mb-4">{pathway.description}</p>
-                <Link to={`/explore/pathway/${pathway.id}`}>
-                  <Button variant="secondary" size="sm" className="w-full">
-                    View Careers
-                  </Button>
-                </Link>
+                <div className="flex justify-start">
+                  <Link to={`/explore/pathway/${pathway.id}`}>
+                    <Button variant="secondary" size="sm">
+                      View Careers
+                    </Button>
+                  </Link>
+                </div>
               </Card>
             );
           })}
