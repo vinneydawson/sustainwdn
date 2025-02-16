@@ -3,15 +3,16 @@ import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Mail, Phone, Globe, MapPin, Briefcase } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 
 interface Profile {
   id: string;
-  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   bio: string | null;
   avatar_url: string | null;
   phone_number: string | null;
@@ -22,9 +23,8 @@ interface Profile {
 
 export function ProfileSection({ user }: { user: User }) {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [fullName, setFullName] = useState("");
-  const [bio, setBio] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [country, setCountry] = useState("");
   const [timezone, setTimezone] = useState("");
@@ -49,14 +49,13 @@ export function ProfileSection({ user }: { user: User }) {
       
       if (data) {
         setProfile(data);
-        setFullName(data.full_name || "");
-        setBio(data.bio || "");
+        setFirstName(data.first_name || "");
+        setLastName(data.last_name || "");
         setPhoneNumber(data.phone_number || "");
         setCountry(data.country || "");
         setTimezone(data.timezone || "");
         setRole(data.role || "");
       } else {
-        // If no profile exists, create one
         const { error: insertError } = await supabase
           .from("profiles")
           .insert({ id: user.id })
@@ -64,24 +63,6 @@ export function ProfileSection({ user }: { user: User }) {
           .single();
 
         if (insertError) throw insertError;
-
-        // Fetch the newly created profile
-        const { data: newProfile, error: fetchError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (fetchError) throw fetchError;
-        if (newProfile) {
-          setProfile(newProfile);
-          setFullName(newProfile.full_name || "");
-          setBio(newProfile.bio || "");
-          setPhoneNumber(newProfile.phone_number || "");
-          setCountry(newProfile.country || "");
-          setTimezone(newProfile.timezone || "");
-          setRole(newProfile.role || "");
-        }
       }
     } catch (error: any) {
       toast({
@@ -95,10 +76,10 @@ export function ProfileSection({ user }: { user: User }) {
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      if (file.size > 5 * 1024 * 1024) {
+      if (file.size > 800 * 400) { // 800x400px size limit as per mockup
         toast({
           title: "File too large",
-          description: "Avatar image must be less than 5MB",
+          description: "Avatar image must be less than 800x400px",
           variant: "destructive",
         });
         return;
@@ -133,8 +114,8 @@ export function ProfileSection({ user }: { user: User }) {
         .from('profiles')
         .upsert({
           id: user.id,
-          full_name: fullName,
-          bio: bio,
+          first_name: firstName,
+          last_name: lastName,
           avatar_url: avatarUrl,
           phone_number: phoneNumber,
           country: country,
@@ -150,7 +131,6 @@ export function ProfileSection({ user }: { user: User }) {
         description: "Your profile has been successfully updated.",
       });
 
-      setIsEditing(false);
       fetchProfile();
     } catch (error: any) {
       toast({
@@ -163,179 +143,174 @@ export function ProfileSection({ user }: { user: User }) {
     }
   };
 
+  const handleCancel = () => {
+    // Reset form to current profile values
+    if (profile) {
+      setFirstName(profile.first_name || "");
+      setLastName(profile.last_name || "");
+      setPhoneNumber(profile.phone_number || "");
+      setCountry(profile.country || "");
+      setTimezone(profile.timezone || "");
+      setRole(profile.role || "");
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-6">
-      <div className="flex items-start justify-between mb-6">
+    <div className="max-w-[800px] mx-auto">
+      <div className="space-y-8">
         <div>
-          <h2 className="text-2xl font-bold">Profile Information</h2>
-          <p className="text-gray-600">Update your profile information</p>
-        </div>
-        {!isEditing && (
-          <Button onClick={() => setIsEditing(true)} variant="outline">
-            Edit Profile
-          </Button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left column - Avatar */}
-        <div className="flex flex-col items-center gap-4">
-          <Avatar className="h-32 w-32">
-            <AvatarImage src={profile?.avatar_url} />
-            <AvatarFallback>{fullName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
-          </Avatar>
-          {isEditing && (
-            <div className="w-full">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                className="w-full"
-              />
-              <p className="text-sm text-gray-500 mt-2">
-                JPG, GIF or PNG. Max size of 5MB.
-              </p>
-            </div>
-          )}
+          <h1 className="text-2xl font-semibold">Settings</h1>
         </div>
 
-        {/* Middle column - Basic Info */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
-              </label>
-              {isEditing ? (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-lg font-medium">Personal info</h2>
+            <p className="text-sm text-gray-500">
+              Update your photo and personal details here.
+            </p>
+          </div>
+
+          <div className="grid gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">
+                  Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Enter your full name"
+                  id="firstName"
+                  placeholder="Vinney"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                 />
-              ) : (
-                <div className="flex items-center">
-                  <p className="text-gray-900">{profile?.full_name || "Not set"}</p>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <div className="flex items-center">
-                <Mail className="h-4 w-4 text-gray-500 mr-2" />
-                <p className="text-gray-900">{user.email}</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="invisible">
+                  Last Name
+                </Label>
+                <Input
+                  id="lastName"
+                  placeholder="Dawson"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number
-              </label>
-              {isEditing ? (
+            <div className="space-y-2">
+              <Label htmlFor="email">
+                Email address <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
+                  id="email"
+                  type="email"
+                  value={user.email}
+                  readOnly
+                  className="pl-9"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone number</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="(310) 200-8101"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="Enter your phone number"
+                  className="pl-9"
                 />
-              ) : (
-                <div className="flex items-center">
-                  <Phone className="h-4 w-4 text-gray-500 mr-2" />
-                  <p className="text-gray-900">{profile?.phone_number || "Not set"}</p>
-                </div>
-              )}
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Country
-              </label>
-              {isEditing ? (
-                <Input
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="Enter your country"
-                />
-              ) : (
-                <div className="flex items-center">
-                  <MapPin className="h-4 w-4 text-gray-500 mr-2" />
-                  <p className="text-gray-900">{profile?.country || "Not set"}</p>
+            <div className="space-y-2">
+              <Label>
+                Your photo <span className="text-red-500">*</span>
+              </Label>
+              <p className="text-sm text-gray-500">
+                This will be displayed on your profile.
+              </p>
+              <div className="flex items-center gap-6">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={profile?.avatar_url} />
+                  <AvatarFallback>
+                    {firstName?.charAt(0)}
+                    {lastName?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
+                    <div className="text-center">
+                      <Button variant="outline" className="w-full max-w-xs">
+                        Click to upload
+                      </Button>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="hidden"
+                        id="avatar-upload"
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        SVG, PNG, JPG or GIF (max. 800x400px)
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Timezone
-              </label>
-              {isEditing ? (
-                <Input
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  placeholder="Enter your timezone"
-                />
-              ) : (
-                <div className="flex items-center">
-                  <Globe className="h-4 w-4 text-gray-500 mr-2" />
-                  <p className="text-gray-900">{profile?.timezone || "Not set"}</p>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Role
-              </label>
-              {isEditing ? (
-                <Input
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  placeholder="Enter your role"
-                />
-              ) : (
-                <div className="flex items-center">
-                  <Briefcase className="h-4 w-4 text-gray-500 mr-2" />
-                  <p className="text-gray-900">{profile?.role || "Not set"}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Bio
-            </label>
-            {isEditing ? (
-              <Textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell us about yourself"
-                className="min-h-[100px]"
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Input
+                id="role"
+                placeholder="Lead Designer"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
               />
-            ) : (
-              <p className="text-gray-900">{profile?.bio || "No bio yet"}</p>
-            )}
-          </div>
-
-          {isEditing && (
-            <div className="flex gap-4">
-              <Button 
-                onClick={handleSave} 
-                disabled={isLoading}
-                className="bg-primary-600 hover:bg-primary-700 text-white"
-              >
-                {isLoading ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button
-                onClick={() => setIsEditing(false)}
-                variant="outline"
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
             </div>
-          )}
+
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                placeholder="United States"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="timezone">Timezone</Label>
+              <Input
+                id="timezone"
+                placeholder="Pacific Standard Time (PST)"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-4">
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={isLoading}
+            className="bg-primary text-white"
+          >
+            {isLoading ? "Saving..." : "Save"}
+          </Button>
         </div>
       </div>
     </div>
