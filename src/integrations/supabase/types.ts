@@ -48,6 +48,68 @@ export type Database = {
         }
         Relationships: []
       }
+      job_roles: {
+        Row: {
+          certificates: string[] | null
+          created_at: string
+          description: string
+          education: string[] | null
+          experience: string[] | null
+          id: string
+          level: string
+          pathway_id: string | null
+          projections: string | null
+          related_jobs: string[] | null
+          resources: string[] | null
+          salary: string | null
+          tasks: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          certificates?: string[] | null
+          created_at?: string
+          description: string
+          education?: string[] | null
+          experience?: string[] | null
+          id?: string
+          level: string
+          pathway_id?: string | null
+          projections?: string | null
+          related_jobs?: string[] | null
+          resources?: string[] | null
+          salary?: string | null
+          tasks?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          certificates?: string[] | null
+          created_at?: string
+          description?: string
+          education?: string[] | null
+          experience?: string[] | null
+          id?: string
+          level?: string
+          pathway_id?: string | null
+          projections?: string | null
+          related_jobs?: string[] | null
+          resources?: string[] | null
+          salary?: string | null
+          tasks?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_roles_pathway_id_fkey"
+            columns: ["pathway_id"]
+            isOneToOne: false
+            referencedRelation: "career_pathways"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

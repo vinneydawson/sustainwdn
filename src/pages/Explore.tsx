@@ -3,15 +3,17 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { Leaf, Wind, Sun, Cpu, LucideIcon } from "lucide-react";
+import { Banknote, Fish, Wind, Cpu, Droplet, LucideIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 // Map string icon names to Lucide components
 const iconMap: { [key: string]: LucideIcon } = {
-  Leaf,
+  Fish,
   Wind,
-  Sun,
+  Banknote,
   Cpu,
+  Droplet,
 };
 
 type JobLevel = "entry" | "mid" | "advanced";
@@ -21,30 +23,54 @@ interface CareerPathway {
   title: string;
   description: string;
   level: JobLevel;
-  salary_range: string | null;
-  requirements: string[] | null;
-  skills: string[] | null;
   icon: string;
+}
+
+interface JobRole {
+  id: string;
+  pathway_id: string;
+  title: string;
+  description: string;
+  level: JobLevel;
+  tasks: string[] | null;
+  education: string[] | null;
+  salary: string | null;
 }
 
 const Explore = () => {
   const [selectedLevel, setSelectedLevel] = useState<JobLevel | null>(null);
+  const [selectedPathway, setSelectedPathway] = useState<string | null>(null);
 
-  const { data: careerPaths, isLoading } = useQuery({
-    queryKey: ["career-paths", selectedLevel],
+  const { data: pathways, isLoading: isLoadingPathways } = useQuery({
+    queryKey: ["career-pathways"],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("career_pathways")
         .select("*");
+      if (error) throw error;
+      return data as CareerPathway[];
+    },
+  });
+
+  const { data: jobs, isLoading: isLoadingJobs } = useQuery({
+    queryKey: ["job-roles", selectedPathway, selectedLevel],
+    queryFn: async () => {
+      let query = supabase
+        .from("job_roles")
+        .select("*");
       
+      if (selectedPathway) {
+        query = query.eq('pathway_id', selectedPathway);
+      }
       if (selectedLevel) {
         query = query.eq('level', selectedLevel);
       }
       
       const { data, error } = await query;
       if (error) throw error;
-      return data as CareerPathway[];
+      return data as JobRole[];
     },
+    enabled: true,
   });
 
   const levels: Array<{ id: JobLevel; label: string }> = [
@@ -53,7 +79,7 @@ const Explore = () => {
     { id: 'advanced', label: 'Advanced' }
   ];
 
-  if (isLoading) {
+  if (isLoadingPathways || isLoadingJobs) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         <div className="container mx-auto px-4 py-12">
@@ -92,49 +118,39 @@ const Explore = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {careerPaths?.map((path) => {
-            const IconComponent = iconMap[path.icon];
+        {/* Career Pathways Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          {pathways?.map((pathway) => {
+            const IconComponent = iconMap[pathway.icon];
+            const pathwayJobs = jobs?.filter(job => job.pathway_id === pathway.id) || [];
             return (
-              <Card key={path.id} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="text-primary-600 mb-4">
-                  {IconComponent && <IconComponent className="h-8 w-8" />}
+              <Card key={pathway.id} className="p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-4 mb-4">
+                  {IconComponent && <IconComponent className="h-8 w-8 text-primary-600" />}
+                  <h3 className="text-xl font-semibold">{pathway.title}</h3>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{path.title}</h3>
-                <p className="text-sm text-primary-600 mb-2">
-                  {path.level.charAt(0).toUpperCase() + path.level.slice(1)} Level
-                </p>
-                <p className="text-gray-600 mb-4">{path.description}</p>
-                {path.salary_range && (
-                  <p className="text-sm text-primary-600 mb-2">
-                    Salary Range: {path.salary_range}
-                  </p>
-                )}
-                {path.requirements && path.requirements.length > 0 && (
-                  <div className="mb-2">
-                    <p className="text-sm font-semibold mb-1">Requirements:</p>
-                    <ul className="text-sm text-gray-600 list-disc list-inside">
-                      {path.requirements.map((req, index) => (
-                        <li key={index}>{req}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {path.skills && path.skills.length > 0 && (
-                  <div>
-                    <p className="text-sm font-semibold mb-1">Key Skills:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {path.skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="text-xs bg-primary-50 text-primary-700 px-2 py-1 rounded-full"
-                        >
-                          {skill}
-                        </span>
-                      ))}
+                <p className="text-gray-600 mb-4">{pathway.description}</p>
+                <div className="space-y-4">
+                  {pathwayJobs.map((job) => (
+                    <div key={job.id} className="border-t pt-4">
+                      <h4 className="font-medium text-lg mb-2">{job.title}</h4>
+                      <p className="text-sm text-gray-600 mb-2">{job.description}</p>
+                      <p className="text-sm text-primary-600">
+                        {job.level.charAt(0).toUpperCase() + job.level.slice(1)} Level
+                      </p>
+                      {job.salary && (
+                        <p className="text-sm text-gray-600 mt-1">
+                          Salary: {job.salary}
+                        </p>
+                      )}
+                      <Link to={`/explore/${job.id}`}>
+                        <Button variant="outline" size="sm" className="mt-2">
+                          View Details
+                        </Button>
+                      </Link>
                     </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </Card>
             );
           })}
