@@ -56,31 +56,33 @@ function SortableJobRow({ job, onEdit, onDelete }: JobRowProps) {
       style={style}
       className={cn(isDragging && "opacity-50 bg-accent")}
     >
-      <TableCell>
+      <TableCell className="w-[50px]">
         <div {...attributes} {...listeners} className="cursor-grab">
           <GripVertical className="h-4 w-4 text-gray-400" />
         </div>
       </TableCell>
-      <TableCell className="font-medium">{job.title}</TableCell>
-      <TableCell className="capitalize">{job.level}</TableCell>
-      <TableCell>{job.career_pathways?.title || "Not assigned"}</TableCell>
-      <TableCell>{job.salary || "Not specified"}</TableCell>
-      <TableCell className="space-x-2">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => onEdit(job)}
-        >
-          Edit
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => onDelete(job)}
-          className="text-red-600 hover:text-red-700"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+      <TableCell className="font-medium w-[30%]">{job.title}</TableCell>
+      <TableCell className="capitalize w-[15%]">{job.level}</TableCell>
+      <TableCell className="w-[25%]">{job.career_pathways?.title || "Not assigned"}</TableCell>
+      <TableCell className="w-[15%]">{job.salary || "Not specified"}</TableCell>
+      <TableCell className="w-[15%] text-right">
+        <div className="flex justify-end space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => onEdit(job)}
+          >
+            Edit
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => onDelete(job)}
+            className="text-red-600 hover:text-red-700"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -124,33 +126,35 @@ export function JobsTable({
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[50px]"></TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Level</TableHead>
-            <TableHead>Career Pathway</TableHead>
-            <TableHead>Salary</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <SortableContext
-            items={jobs.map(j => j.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {jobs?.map((job) => (
-              <SortableJobRow
-                key={job.id}
-                job={job}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            ))}
-          </SortableContext>
-        </TableBody>
-      </Table>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[30%]">Title</TableHead>
+              <TableHead className="w-[15%]">Level</TableHead>
+              <TableHead className="w-[25%]">Career Pathway</TableHead>
+              <TableHead className="w-[15%]">Salary</TableHead>
+              <TableHead className="w-[15%] text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <SortableContext
+              items={jobs.map(j => j.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {jobs?.map((job) => (
+                <SortableJobRow
+                  key={job.id}
+                  job={job}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              ))}
+            </SortableContext>
+          </TableBody>
+        </Table>
+      </div>
     </DndContext>
   );
 }
