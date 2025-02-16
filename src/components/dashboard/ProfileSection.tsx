@@ -336,6 +336,11 @@ export function ProfileSection({ user }: { user: User }) {
         ...prev,
         avatar_url: null,
       } : null);
+      setTempImageUrl("");
+      setIsCropperOpen(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
 
       toast({
         title: "Photo removed",
