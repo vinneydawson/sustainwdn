@@ -31,7 +31,7 @@ export const AdminProvider = ({ children }: { children: React.ReactNode }) => {
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       setIsAdmin(role?.role === 'admin');
       setIsLoading(false);
