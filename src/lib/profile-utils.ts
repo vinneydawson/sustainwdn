@@ -1,4 +1,3 @@
-
 export const countries = [
   { code: "US", name: "United States", continent: "North America" },
   { code: "GB", name: "United Kingdom", continent: "Europe" },
@@ -36,6 +35,17 @@ export const groupedCountries = countries.reduce((acc, country) => {
 Object.keys(groupedCountries).forEach(group => {
   groupedCountries[group].sort((a, b) => a.name.localeCompare(b.name));
 });
+
+export const detectUserCountry = async (): Promise<string> => {
+  try {
+    const response = await fetch('https://ipapi.co/json/');
+    const data = await response.json();
+    return data.country_code;
+  } catch (error) {
+    console.error('Error detecting user country:', error);
+    return 'US'; // Default to US if detection fails
+  }
+};
 
 export const timezones = [
   // North America (Common)
@@ -90,3 +100,7 @@ export const groupedTimezones = timezones.reduce((acc, tz) => {
 Object.keys(groupedTimezones).forEach(group => {
   groupedTimezones[group].sort((a, b) => a.label.localeCompare(b.label));
 });
+
+export const detectUserTimezone = (): string => {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+};
