@@ -1,1 +1,3 @@
-project_id = "qcfnxmtzbgbffwxulkma"
+
+[functions.detect-location]
+verify_jwt = false

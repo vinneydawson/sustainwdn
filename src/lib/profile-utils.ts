@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export const countries = [
   { code: "US", name: "United States", continent: "North America" },
   { code: "GB", name: "United Kingdom", continent: "Europe" },
@@ -38,12 +40,12 @@ Object.keys(groupedCountries).forEach(group => {
 
 export const detectUserCountry = async (): Promise<string> => {
   try {
-    const response = await fetch('https://ipapi.co/json/');
-    const data = await response.json();
-    return data.country_code;
+    const { data, error } = await supabase.functions.invoke('detect-location');
+    if (error) throw error;
+    return data?.country || 'US';
   } catch (error) {
     console.error('Error detecting user country:', error);
-    return 'US'; // Default to US if detection fails
+    return 'US';
   }
 };
 
