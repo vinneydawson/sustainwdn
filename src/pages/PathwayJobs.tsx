@@ -44,36 +44,33 @@ const PathwayJobs = () => {
   const { pathwayId } = useParams<{ pathwayId: string }>();
   const [selectedLevel, setSelectedLevel] = useState<JobLevel | null>(null);
 
-  const { data: pathway, isLoading: isLoadingPathway, error: pathwayError } = useQuery({
+  const { data: pathway, isLoading: isLoadingPathway } = useQuery({
     queryKey: ["career-pathway", pathwayId],
     queryFn: async () => {
-      const { data: rawData, error } = await supabase
+      const { data, error } = await supabase
         .from("career_pathways")
         .select("*")
         .eq("id", pathwayId)
         .single();
       
       if (error) throw error;
-      
-      const data = rawData as any;
       return {
         ...data,
         description: typeof data.description === 'string'
           ? { content: data.description }
-          : typeof data.description === 'object' && 'content' in data.description
-            ? data.description
-            : { content: JSON.stringify(data.description) },
+          : data.description,
         requirements: Array.isArray(data.requirements)
-          ? data.requirements.map((req: any) =>
+          ? data.requirements.map(req =>
               typeof req === 'string' ? { content: req } : req
             )
           : null
       } as CareerPathway;
     },
     enabled: !!pathwayId,
+    staleTime: 1000 * 60 * 5,
   });
 
-  const { data: jobs, isLoading: isLoadingJobs, error: jobsError } = useQuery({
+  const { data: jobs = [], isLoading: isLoadingJobs } = useQuery({
     queryKey: ["pathway-jobs", pathwayId, selectedLevel],
     queryFn: async () => {
       let query = supabase
@@ -85,29 +82,28 @@ const PathwayJobs = () => {
         query = query.eq("level", selectedLevel);
       }
       
-      const { data: rawData, error } = await query;
+      const { data, error } = await query;
       if (error) throw error;
 
-      return (rawData as any[]).map(data => ({
-        ...data,
-        description: typeof data.description === 'string'
-          ? { content: data.description }
-          : typeof data.description === 'object' && 'content' in data.description
-            ? data.description
-            : { content: JSON.stringify(data.description) },
-        resources: Array.isArray(data.resources)
-          ? data.resources.map((res: any) =>
+      return data.map(job => ({
+        ...job,
+        description: typeof job.description === 'string'
+          ? { content: job.description }
+          : job.description,
+        resources: Array.isArray(job.resources)
+          ? job.resources.map(res =>
               typeof res === 'string' ? { content: res } : res
             )
           : null,
-        related_jobs: Array.isArray(data.related_jobs)
-          ? data.related_jobs.map((rel: any) =>
+        related_jobs: Array.isArray(job.related_jobs)
+          ? job.related_jobs.map(rel =>
               typeof rel === 'string' ? { content: rel } : rel
             )
           : null
       })) as JobRole[];
     },
     enabled: !!pathwayId,
+    staleTime: 1000 * 60 * 5,
   });
 
   const levels: Array<{ id: JobLevel; label: string }> = [
@@ -120,29 +116,21 @@ const PathwayJobs = () => {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         <div className="container mx-auto px-4 py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8">Loading...</h1>
+          <div className="animate-pulse">
+            <div className="h-8 w-48 bg-gray-200 rounded mb-4"></div>
+            <div className="h-4 w-full max-w-2xl bg-gray-200 rounded mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-64 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (pathwayError || jobsError) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
-        <div className="container mx-auto px-4 py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8">Error loading pathway</h1>
-          <p className="text-red-600 mb-4">
-            {pathwayError?.message || jobsError?.message}
-          </p>
-          <Link to="/explore" className="text-primary-600 hover:text-primary-700">
-            Return to Explore
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (!pathway || !jobs) {
+  if (!pathway) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         <div className="container mx-auto px-4 py-12">
