@@ -18,7 +18,7 @@ const transformJsonToContent = (value: any): { content: string } => {
     return { content: value };
   }
   if (typeof value === 'object' && value !== null && 'content' in value) {
-    return { content: String(value.content) };
+    return value as { content: string };
   }
   return { content: JSON.stringify(value) };
 };
@@ -55,12 +55,13 @@ const PathwayJobs = () => {
       } as CareerPathway;
     },
     enabled: !!pathwayId,
-    staleTime: 1000 * 60 * 5,
   });
 
   const { data: jobs = [], isLoading: isLoadingJobs } = useQuery({
     queryKey: ["pathway-jobs", pathwayId, selectedLevel],
     queryFn: async () => {
+      console.log("Fetching jobs for pathway:", pathwayId, "with level:", selectedLevel);
+      
       let query = supabase
         .from("job_roles")
         .select(`
@@ -75,22 +76,28 @@ const PathwayJobs = () => {
       }
       
       const { data, error } = await query;
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Error fetching jobs:", error);
+        throw error;
+      }
 
-      return (data || []).map(job => ({
+      console.log("Raw jobs data:", data);
+
+      const transformedJobs = (data || []).map(job => ({
         ...job,
         description: transformJsonToContent(job.description),
         resources: Array.isArray(job.resources)
           ? job.resources.map(res => transformJsonToContent(res))
-          : null,
+          : [],
         related_jobs: Array.isArray(job.related_jobs)
           ? job.related_jobs.map(rel => transformJsonToContent(rel))
-          : null,
+          : [],
         tasks_responsibilities: job.tasks_responsibilities 
           ? Object.fromEntries(
-              Object.entries(job.tasks_responsibilities as Record<string, Json>).map(([key, value]) => [
+              Object.entries(job.tasks_responsibilities as Record<string, any>).map(([key, value]) => [
                 key,
-                typeof value === 'string' ? { content: value } : value
+                transformJsonToContent(value)
               ])
             )
           : null,
@@ -106,18 +113,20 @@ const PathwayJobs = () => {
                 ? job.certificates_degrees.experience
                 : []
             }
-          : null,
-        career_pathways: {
+          : { education: [], certificates: [], experience: [] },
+        career_pathways: job.career_pathways ? {
           ...job.career_pathways,
           description: transformJsonToContent(job.career_pathways.description),
           requirements: Array.isArray(job.career_pathways.requirements)
             ? job.career_pathways.requirements.map(req => transformJsonToContent(req))
             : null
-        }
+        } : null
       })) as JobRole[];
+
+      console.log("Transformed jobs data:", transformedJobs);
+      return transformedJobs;
     },
     enabled: !!pathwayId,
-    staleTime: 1000 * 60 * 5,
   });
 
   if (isLoadingPathway || isLoadingJobs) {
@@ -136,6 +145,8 @@ const PathwayJobs = () => {
       </div>
     );
   }
+
+  console.log("Rendering jobs:", jobs);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
