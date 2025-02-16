@@ -1,18 +1,9 @@
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, ChevronLeft, Trash2 } from "lucide-react";
+import { BookOpen, ChevronLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,127 +14,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/components/ui/use-toast";
 import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import { PathwayDialog } from "@/components/admin/PathwayDialog";
-import { supabase } from "@/integrations/supabase/client";
+import { PathwaysTable } from "@/components/admin/PathwaysTable";
+import { usePathways, type PathwayFormData } from "@/hooks/use-pathways";
 import type { CareerPathway } from "@/types/job";
 
-type PathwayFormData = Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>;
-
 const AdminPathways = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedPathway, setSelectedPathway] = useState<CareerPathway | null>(null);
-
-  const { data: pathways, isLoading } = useQuery({
-    queryKey: ["pathways"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("career_pathways")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as CareerPathway[];
-    },
-  });
-
-  const createPathway = useMutation({
-    mutationFn: async (newPathway: PathwayFormData) => {
-      const { data, error } = await supabase
-        .from("career_pathways")
-        .insert([{
-          ...newPathway,
-          description: { content: newPathway.description.content },
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pathways"] });
-      toast({
-        title: "Success",
-        description: "Career pathway created successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to create career pathway",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updatePathway = useMutation({
-    mutationFn: async (pathway: PathwayFormData & { id: string }) => {
-      const { data, error } = await supabase
-        .from("career_pathways")
-        .update({
-          ...pathway,
-          description: { content: pathway.description.content },
-        })
-        .eq("id", pathway.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pathways"] });
-      toast({
-        title: "Success",
-        description: "Career pathway updated successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update career pathway",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deletePathway = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("career_pathways")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pathways"] });
-      toast({
-        title: "Success",
-        description: "Career pathway deleted successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to delete career pathway",
-        variant: "destructive",
-      });
-    },
-  });
+  const { pathways, isLoading, createPathway, updatePathway, deletePathway } = usePathways();
 
   const handleSubmit = (data: PathwayFormData) => {
     if (selectedPathway) {
-      // When updating, we only send the fields that can be updated
-      updatePathway.mutate({ 
-        ...data,
-        id: selectedPathway.id,
-      });
+      updatePathway.mutate({ ...data, id: selectedPathway.id });
     } else {
       createPathway.mutate(data);
     }
@@ -201,42 +86,11 @@ const AdminPathways = () => {
             {isLoading ? (
               <div className="text-left">Loading pathways...</div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-left">Title</TableHead>
-                    <TableHead className="text-left">Skills</TableHead>
-                    <TableHead className="text-left">Salary Range</TableHead>
-                    <TableHead className="text-left">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pathways?.map((pathway) => (
-                    <TableRow key={pathway.id}>
-                      <TableCell className="font-medium text-left">{pathway.title}</TableCell>
-                      <TableCell className="text-left">{pathway.skills?.join(", ") || "No skills listed"}</TableCell>
-                      <TableCell className="text-left">{pathway.salary_range || "Not specified"}</TableCell>
-                      <TableCell className="text-left space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(pathway)}
-                        >
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDelete(pathway)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <PathwaysTable
+                pathways={pathways || []}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             )}
           </Card>
 
