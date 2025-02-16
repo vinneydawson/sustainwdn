@@ -59,7 +59,47 @@ const JobDetails = () => {
         .maybeSingle();
       
       if (error) throw error;
-      return data as JobRole;
+      if (!data) return null;
+
+      // Transform career pathway data
+      const transformedCareerPathway = {
+        ...data.career_pathways,
+        description: typeof data.career_pathways.description === 'string'
+          ? { content: data.career_pathways.description }
+          : data.career_pathways.description,
+        requirements: Array.isArray(data.career_pathways.requirements)
+          ? data.career_pathways.requirements.map(req =>
+              typeof req === 'string' ? { content: req } : req
+            )
+          : null
+      };
+
+      // Transform job role data
+      return {
+        ...data,
+        description: typeof data.description === 'string'
+          ? { content: data.description }
+          : data.description,
+        resources: Array.isArray(data.resources)
+          ? data.resources.map(res =>
+              typeof res === 'string' ? { content: res } : res
+            )
+          : null,
+        related_jobs: Array.isArray(data.related_jobs)
+          ? data.related_jobs.map(rel =>
+              typeof rel === 'string' ? { content: rel } : rel
+            )
+          : null,
+        tasks_responsibilities: data.tasks_responsibilities
+          ? Object.fromEntries(
+              Object.entries(data.tasks_responsibilities).map(([key, value]) => [
+                key,
+                typeof value === 'string' ? { content: value } : value
+              ])
+            )
+          : null,
+        career_pathways: transformedCareerPathway
+      } as JobRole;
     },
   });
 
