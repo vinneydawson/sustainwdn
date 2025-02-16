@@ -139,7 +139,11 @@ const AdminPathways = () => {
 
   const handleSubmit = (data: PathwayFormData) => {
     if (selectedPathway) {
-      updatePathway.mutate({ ...data, id: selectedPathway.id });
+      // When updating, we only send the fields that can be updated
+      updatePathway.mutate({ 
+        ...data,
+        id: selectedPathway.id,
+      });
     } else {
       createPathway.mutate(data);
     }
