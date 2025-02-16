@@ -57,7 +57,10 @@ const Explore = () => {
     queryFn: async () => {
       let query = supabase
         .from("job_roles")
-        .select("*");
+        .select(`
+          *,
+          career_pathways (*)
+        `);
       
       if (selectedPathway) {
         query = query.eq('pathway_id', selectedPathway);
