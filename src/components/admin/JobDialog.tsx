@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, X } from "lucide-react";
@@ -44,6 +45,8 @@ export function JobDialog({
 }: JobDialogProps) {
   const [resources, setResources] = useState<ResourceLink[]>([]);
   const [certificates, setCertificates] = useState<ResourceLink[]>([]);
+  const [tasks, setTasks] = useState<string[]>([]);
+  const [relatedJobs, setRelatedJobs] = useState<string[]>([]);
 
   const { register, handleSubmit, reset, setValue, watch } = useForm<JobFormData>({
     defaultValues: {
@@ -58,8 +61,6 @@ export function JobDialog({
         experience: [],
       },
       tasks_responsibilities: initialData?.tasks_responsibilities || {},
-      licenses: initialData?.licenses || [],
-      job_projections: initialData?.job_projections || [],
       resources: initialData?.resources || [],
       related_jobs: initialData?.related_jobs || [],
       projections: initialData?.projections || "",
@@ -101,6 +102,20 @@ export function JobDialog({
         setCertificates([]);
       }
 
+      // Initialize tasks from initialData
+      if (initialData?.tasks_responsibilities) {
+        setTasks(Object.values(initialData.tasks_responsibilities).map(t => t.content));
+      } else {
+        setTasks([]);
+      }
+
+      // Initialize related jobs from initialData
+      if (initialData?.related_jobs) {
+        setRelatedJobs(initialData.related_jobs.map(j => j.content));
+      } else {
+        setRelatedJobs([]);
+      }
+
       reset({
         title: initialData?.title || "",
         description: initialData?.description || { content: "" },
@@ -113,8 +128,6 @@ export function JobDialog({
           experience: [],
         },
         tasks_responsibilities: initialData?.tasks_responsibilities || {},
-        licenses: initialData?.licenses || [],
-        job_projections: initialData?.job_projections || [],
         resources: initialData?.resources || [],
         related_jobs: initialData?.related_jobs || [],
         projections: initialData?.projections || "",
@@ -130,9 +143,22 @@ export function JobDialog({
     
     const formattedCertificates = certificates.map(c => `${c.url}|${c.text}`);
 
+    // Transform tasks into the required format
+    const formattedTasks = tasks.reduce((acc, task, index) => {
+      acc[`task_${index + 1}`] = { content: task };
+      return acc;
+    }, {} as Record<string, { content: string }>);
+
+    // Transform related jobs into the required format
+    const formattedRelatedJobs = relatedJobs.map(job => ({
+      content: job
+    }));
+
     const updatedData = {
       ...data,
       resources: formattedResources,
+      tasks_responsibilities: formattedTasks,
+      related_jobs: formattedRelatedJobs,
       certificates_degrees: {
         ...data.certificates_degrees,
         certificates: formattedCertificates
@@ -143,6 +169,7 @@ export function JobDialog({
     onOpenChange(false);
   };
 
+  // Resource management functions
   const addResource = () => {
     setResources([...resources, { url: "", text: "" }]);
   };
@@ -157,6 +184,7 @@ export function JobDialog({
     setResources(updatedResources);
   };
 
+  // Certificate management functions
   const addCertificate = () => {
     setCertificates([...certificates, { url: "", text: "" }]);
   };
@@ -171,9 +199,19 @@ export function JobDialog({
     setCertificates(updatedCertificates);
   };
 
-  const handleArrayInput = (field: keyof JobFormData, value: string) => {
-    const items = value.split(',').map(item => ({ content: item.trim() }));
-    setValue(field as any, items);
+  // Tasks management functions
+  const addTask = () => {
+    setTasks([...tasks, ""]);
+  };
+
+  const removeTask = (index: number) => {
+    setTasks(tasks.filter((_, i) => i !== index));
+  };
+
+  const updateTask = (index: number, value: string) => {
+    const updatedTasks = [...tasks];
+    updatedTasks[index] = value;
+    setTasks(updatedTasks);
   };
 
   return (
@@ -195,6 +233,7 @@ export function JobDialog({
                 placeholder="Enter job title..."
               />
             </div>
+
             <div className="grid gap-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
@@ -204,6 +243,7 @@ export function JobDialog({
                 placeholder="Enter job description..."
               />
             </div>
+
             <div className="grid gap-2">
               <Label htmlFor="level">Level</Label>
               <Select
@@ -223,6 +263,7 @@ export function JobDialog({
                 </SelectContent>
               </Select>
             </div>
+
             <div className="grid gap-2">
               <Label htmlFor="pathway">Career Pathway</Label>
               <Select
@@ -246,27 +287,23 @@ export function JobDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label>Resources</Label>
+              <Label>Tasks + Responsibilities</Label>
               <div className="space-y-4">
-                {resources.map((resource, index) => (
+                {tasks.map((task, index) => (
                   <div key={index} className="flex gap-2 items-start">
-                    <div className="flex-1 space-y-2">
-                      <Input
-                        placeholder="URL"
-                        value={resource.url}
-                        onChange={(e) => updateResource(index, 'url', e.target.value)}
-                      />
-                      <Input
-                        placeholder="Display Text"
-                        value={resource.text}
-                        onChange={(e) => updateResource(index, 'text', e.target.value)}
+                    <div className="flex-1">
+                      <Textarea
+                        value={task}
+                        onChange={(e) => updateTask(index, e.target.value)}
+                        placeholder="Enter task..."
+                        className="min-h-[100px]"
                       />
                     </div>
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      onClick={() => removeResource(index)}
+                      onClick={() => removeTask(index)}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -275,56 +312,22 @@ export function JobDialog({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={addResource}
+                  onClick={addTask}
                   className="w-full"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Resource
+                  Add Task
                 </Button>
               </div>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="salary">Salary Range</Label>
-              <Input
-                id="salary"
-                {...register("salary")}
-                placeholder="Enter salary range..."
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="projections">Job Projections</Label>
+              <Label htmlFor="education">Education</Label>
               <Textarea
-                id="projections"
-                {...register("projections")}
-                placeholder="Enter job projections..."
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="related_jobs">Related Jobs (comma-separated)</Label>
-              <Textarea
-                id="related_jobs"
-                onChange={(e) => handleArrayInput("related_jobs", e.target.value)}
-                defaultValue={initialData?.related_jobs?.map(j => j.content).join(", ") || ""}
-                placeholder="Enter related jobs separated by commas..."
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="licenses">Licenses (comma-separated)</Label>
-              <Textarea
-                id="licenses"
-                onChange={(e) => setValue("licenses", e.target.value.split(',').map(l => l.trim()))}
-                defaultValue={initialData?.licenses?.join(", ") || ""}
-                placeholder="Enter licenses separated by commas..."
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="job_projections">Job Growth Projections (comma-separated)</Label>
-              <Textarea
-                id="job_projections"
-                onChange={(e) => setValue("job_projections", e.target.value.split(',').map(p => p.trim()))}
-                defaultValue={initialData?.job_projections?.join(", ") || ""}
-                placeholder="Enter job growth projections separated by commas..."
+                id="education"
+                {...register("certificates_degrees.education")}
+                placeholder="Enter required education..."
+                className="min-h-[100px]"
               />
             </div>
 
@@ -368,27 +371,81 @@ export function JobDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label>Certificates & Degrees</Label>
+              <Label htmlFor="experience">Work Experience</Label>
+              <Textarea
+                id="experience"
+                {...register("certificates_degrees.experience")}
+                placeholder="Enter required work experience..."
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="salary">Salary Range</Label>
+              <Input
+                id="salary"
+                {...register("salary")}
+                placeholder="Enter salary range..."
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="projections">Job Projections</Label>
+              <Textarea
+                id="projections"
+                {...register("projections")}
+                placeholder="Enter job projections..."
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Resources</Label>
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="education">Education (comma-separated)</Label>
-                  <Textarea
-                    id="education"
-                    onChange={(e) => setValue("certificates_degrees.education", e.target.value.split(',').map(ed => ed.trim()))}
-                    defaultValue={initialData?.certificates_degrees?.education?.join(", ") || ""}
-                    placeholder="Enter required education separated by commas..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="experience">Experience (comma-separated)</Label>
-                  <Textarea
-                    id="experience"
-                    onChange={(e) => setValue("certificates_degrees.experience", e.target.value.split(',').map(exp => exp.trim()))}
-                    defaultValue={initialData?.certificates_degrees?.experience?.join(", ") || ""}
-                    placeholder="Enter required experience separated by commas..."
-                  />
-                </div>
+                {resources.map((resource, index) => (
+                  <div key={index} className="flex gap-2 items-start">
+                    <div className="flex-1 space-y-2">
+                      <Input
+                        placeholder="URL"
+                        value={resource.url}
+                        onChange={(e) => updateResource(index, 'url', e.target.value)}
+                      />
+                      <Input
+                        placeholder="Display Text"
+                        value={resource.text}
+                        onChange={(e) => updateResource(index, 'text', e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeResource(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addResource}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Resource
+                </Button>
               </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="related_jobs">Other Related Jobs</Label>
+              <Input
+                id="related_jobs"
+                value={relatedJobs.join(', ')}
+                onChange={(e) => setRelatedJobs(e.target.value.split(',').map(job => job.trim()))}
+                placeholder="Enter related jobs separated by commas..."
+              />
             </div>
           </div>
           <DialogFooter>
