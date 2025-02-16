@@ -18,7 +18,7 @@ import {
   SelectLabel,
   SelectSeparator,
 } from "@/components/ui/select";
-import { countries, timezones, detectUserTimezone, groupedTimezones, groupedCountries, detectUserCountry } from "@/lib/profile-utils";
+import { countries, timezones, groupedTimezones, groupedCountries } from "@/lib/profile-utils";
 
 interface Profile {
   id: string;
@@ -38,7 +38,7 @@ const DEFAULT_PROFILE = {
   last_name: "Doe",
   phone_number: "(555) 555-5555",
   country: "US",
-  timezone: detectUserTimezone(),
+  timezone: "America/New_York",
 };
 
 export function ProfileSection({ user }: { user: User }) {
@@ -76,8 +76,6 @@ export function ProfileSection({ user }: { user: User }) {
 
   const fetchProfile = async () => {
     try {
-      const detectedCountry = await detectUserCountry();
-      
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -91,7 +89,7 @@ export function ProfileSection({ user }: { user: User }) {
         setFirstName(data.first_name || DEFAULT_PROFILE.first_name);
         setLastName(data.last_name || DEFAULT_PROFILE.last_name);
         setPhoneNumber(data.phone_number || DEFAULT_PROFILE.phone_number);
-        setCountry(data.country || detectedCountry);
+        setCountry(data.country || DEFAULT_PROFILE.country);
         setTimezone(data.timezone || DEFAULT_PROFILE.timezone);
       } else {
         const { error: insertError } = await supabase
@@ -101,7 +99,7 @@ export function ProfileSection({ user }: { user: User }) {
             first_name: DEFAULT_PROFILE.first_name,
             last_name: DEFAULT_PROFILE.last_name,
             phone_number: DEFAULT_PROFILE.phone_number,
-            country: detectedCountry,
+            country: DEFAULT_PROFILE.country,
             timezone: DEFAULT_PROFILE.timezone,
           })
           .select()
@@ -112,7 +110,7 @@ export function ProfileSection({ user }: { user: User }) {
         setFirstName(DEFAULT_PROFILE.first_name);
         setLastName(DEFAULT_PROFILE.last_name);
         setPhoneNumber(DEFAULT_PROFILE.phone_number);
-        setCountry(detectedCountry);
+        setCountry(DEFAULT_PROFILE.country);
         setTimezone(DEFAULT_PROFILE.timezone);
       }
     } catch (error: any) {
