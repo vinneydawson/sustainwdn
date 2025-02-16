@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -66,14 +67,25 @@ export function ProfileSection({ user }: { user: User }) {
   useEffect(() => {
     if (!profile) return;
 
-    const hasProfileChanges = 
-      debouncedFirstName !== (profile.first_name || DEFAULT_PROFILE.first_name) ||
-      debouncedLastName !== (profile.last_name || DEFAULT_PROFILE.last_name) ||
-      debouncedPhoneNumber !== (profile.phone_number || DEFAULT_PROFILE.phone_number) ||
-      debouncedCountry !== (profile.country || DEFAULT_PROFILE.country) ||
-      debouncedTimezone !== (profile.timezone || DEFAULT_PROFILE.timezone);
+    const currentValues = {
+      first_name: debouncedFirstName,
+      last_name: debouncedLastName,
+      phone_number: debouncedPhoneNumber,
+      country: debouncedCountry,
+      timezone: debouncedTimezone,
+    };
 
-    setHasChanges(hasProfileChanges);
+    const originalValues = {
+      first_name: profile.first_name || DEFAULT_PROFILE.first_name,
+      last_name: profile.last_name || DEFAULT_PROFILE.last_name,
+      phone_number: profile.phone_number || DEFAULT_PROFILE.phone_number,
+      country: profile.country || DEFAULT_PROFILE.country,
+      timezone: profile.timezone || DEFAULT_PROFILE.timezone,
+    };
+
+    const hasProfileChanges = Object.keys(currentValues).some(
+      key => currentValues[key as keyof typeof currentValues] !== originalValues[key as keyof typeof originalValues]
+    );
 
     if (hasProfileChanges) {
       handleSave();
@@ -193,8 +205,6 @@ export function ProfileSection({ user }: { user: User }) {
   };
 
   const handleSave = async () => {
-    if (!hasChanges) return;
-    
     try {
       setIsLoading(true);
 
@@ -221,12 +231,6 @@ export function ProfileSection({ user }: { user: User }) {
 
       if (authError) throw authError;
 
-      toast({
-        title: "Changes saved",
-        description: "Your profile has been updated.",
-        duration: 2000,
-      });
-
       setProfile(prev => prev ? {
         ...prev,
         first_name: firstName,
@@ -237,7 +241,12 @@ export function ProfileSection({ user }: { user: User }) {
         updated_at: new Date().toISOString(),
       } : null);
 
-      setHasChanges(false);
+      toast({
+        title: "Changes saved",
+        description: "Your profile has been updated successfully.",
+        duration: 3000,
+      });
+
     } catch (error: any) {
       toast({
         title: "Error updating profile",
