@@ -27,7 +27,7 @@ export function PathwayDialog({
   onSubmit,
   initialData,
 }: PathwayDialogProps) {
-  const { register, handleSubmit, reset } = useForm<Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>>({
+  const { register, handleSubmit, reset, watch } = useForm<Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>>({
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || { content: "" },
@@ -40,28 +40,29 @@ export function PathwayDialog({
 
   useEffect(() => {
     if (open) {
-      reset(initialData ? {
-        title: initialData.title,
-        description: initialData.description,
-        icon: initialData.icon,
-        salary_range: initialData.salary_range || "",
-        skills: initialData.skills || [],
-        requirements: initialData.requirements || null,
-      } : {
-        title: "",
-        description: { content: "" },
-        icon: "BookOpen",
-        salary_range: "",
-        skills: [],
-        requirements: null,
+      reset({
+        title: initialData?.title || "",
+        description: initialData?.description || { content: "" },
+        icon: initialData?.icon || "BookOpen",
+        salary_range: initialData?.salary_range || "",
+        skills: initialData?.skills || [],
+        requirements: initialData?.requirements || null,
       });
     }
   }, [open, initialData, reset]);
 
-  const handleFormSubmit = (data: Omit<CareerPathway, 'id' | 'created_at' | 'updated_at'>) => {
-    onSubmit(data);
+  const handleFormSubmit = (data: any) => {
+    // Convert comma-separated skills string to array and trim whitespace
+    const formattedData = {
+      ...data,
+      skills: data.skills ? data.skills.split(",").map((skill: string) => skill.trim()).filter(Boolean) : [],
+    };
+    onSubmit(formattedData);
     onOpenChange(false);
   };
+
+  const skillsValue = watch("skills");
+  const displaySkills = Array.isArray(skillsValue) ? skillsValue.join(", ") : skillsValue;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,15 +103,8 @@ export function PathwayDialog({
               <Input
                 id="skills"
                 {...register("skills")}
+                defaultValue={displaySkills}
                 placeholder="e.g. Project Management, Leadership, Communication"
-                onChange={(e) => {
-                  const value = e.target.value;
-                  e.target.value = value
-                    .split(",")
-                    .map((skill) => skill.trim())
-                    .filter(Boolean)
-                    .join(", ");
-                }}
               />
             </div>
           </div>
