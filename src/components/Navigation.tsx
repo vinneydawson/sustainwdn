@@ -1,102 +1,99 @@
 
-import { useEffect, useState } from "react";
-import { NavigationMenu, NavigationMenuItem, NavigationMenuList, NavigationMenuLink, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useAdmin } from "@/contexts/AdminContext";
 
 const Navigation = () => {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const { isAdmin } = useAdmin();
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+  const navigation = [
+    { name: "Home", href: "/" },
+    { name: "Explore", href: "/explore" },
+    { name: "Resources", href: "/resources" },
+    { name: "Dashboard", href: "/dashboard" },
+    ...(isAdmin ? [{ name: "Admin", href: "/admin" }] : []),
+  ];
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigate("/");
-      toast({
-        title: "Signed out successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
+  const isActive = (path: string) => {
+    if (path === "/" && location.pathname !== "/") {
+      return false;
     }
+    return location.pathname.startsWith(path);
   };
 
   return (
-    <div className="sticky top-0 z-50 border-b bg-white/50 backdrop-blur-sm">
+    <nav className="bg-white shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-bold text-primary-600">
-            SustainWDN™
-          </Link>
-          
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <Link to="/explore" className={navigationMenuTriggerStyle()}>
-                  Explore Pathways
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/resources" className={navigationMenuTriggerStyle()}>
-                  Resources
-                </Link>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+        <div className="flex h-16 justify-between">
+          <div className="flex">
+            <div className="flex flex-shrink-0 items-center">
+              <Link to="/" className="text-xl font-bold text-primary-600">
+                SustainWDN™
+              </Link>
+            </div>
+          </div>
 
-          <div className="flex gap-4">
-            {user ? (
-              <>
-                <Link to="/dashboard">
-                  <Button className="bg-primary-600 hover:bg-primary-700 text-white">
-                    Dashboard
-                  </Button>
-                </Link>
-                <Button onClick={handleSignOut} variant="outline">
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/auth?signup=false">
-                  <Button variant="outline">Log In</Button>
-                </Link>
-                <Link to="/auth?signup=true">
-                  <Button 
-                    className="bg-primary-600 hover:bg-primary-700 text-white"
-                  >
-                    Sign Up
-                  </Button>
-                </Link>
-              </>
-            )}
+          {/* Desktop navigation */}
+          <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                  isActive(item.href)
+                    ? "border-b-2 border-primary-500 text-gray-900"
+                    : "border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="flex items-center sm:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(!isOpen)}
+              className="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+            >
+              {isOpen ? (
+                <X className="block h-6 w-6" aria-hidden="true" />
+              ) : (
+                <Menu className="block h-6 w-6" aria-hidden="true" />
+              )}
+            </Button>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="sm:hidden">
+          <div className="space-y-1 pb-3 pt-2">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${
+                  isActive(item.href)
+                    ? "border-primary-500 bg-primary-50 text-primary-700"
+                    : "border-transparent text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </nav>
   );
 };
 
