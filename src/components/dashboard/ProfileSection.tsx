@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectLabel,
+  SelectSeparator,
 } from "@/components/ui/select";
 import { countries, timezones, detectUserTimezone } from "@/lib/profile-utils";
 
@@ -31,7 +32,6 @@ interface Profile {
   updated_at: string | null;
 }
 
-// Default placeholder values for empty profile fields
 const DEFAULT_PROFILE = {
   first_name: "John",
   last_name: "Doe",
@@ -51,7 +51,6 @@ export function ProfileSection({ user }: { user: User }) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Debounce all form values to avoid too many updates
   const [debouncedFirstName] = useDebounce(firstName, 1000);
   const [debouncedLastName] = useDebounce(lastName, 1000);
   const [debouncedPhoneNumber] = useDebounce(phoneNumber, 1000);
@@ -62,7 +61,6 @@ export function ProfileSection({ user }: { user: User }) {
     fetchProfile();
   }, [user]);
 
-  // Effect to auto-save when debounced values change
   useEffect(() => {
     if (profile) {
       handleSave();
@@ -87,14 +85,12 @@ export function ProfileSection({ user }: { user: User }) {
       
       if (data) {
         setProfile(data as Profile);
-        // Use data from profile or fall back to defaults if null/empty
         setFirstName(data.first_name || DEFAULT_PROFILE.first_name);
         setLastName(data.last_name || DEFAULT_PROFILE.last_name);
         setPhoneNumber(data.phone_number || DEFAULT_PROFILE.phone_number);
         setCountry(data.country || DEFAULT_PROFILE.country);
         setTimezone(data.timezone || DEFAULT_PROFILE.timezone);
       } else {
-        // If no profile exists, create one with default values
         const { error: insertError } = await supabase
           .from("profiles")
           .insert({
@@ -110,7 +106,6 @@ export function ProfileSection({ user }: { user: User }) {
 
         if (insertError) throw insertError;
         
-        // Set state with default values
         setFirstName(DEFAULT_PROFILE.first_name);
         setLastName(DEFAULT_PROFILE.last_name);
         setPhoneNumber(DEFAULT_PROFILE.phone_number);
@@ -139,7 +134,6 @@ export function ProfileSection({ user }: { user: User }) {
       }
       setAvatarFile(file);
       
-      // Auto-upload avatar when selected
       try {
         setIsLoading(true);
         const fileExt = file.name.split('.').pop();
@@ -163,7 +157,6 @@ export function ProfileSection({ user }: { user: User }) {
             updated_at: new Date().toISOString(),
           });
 
-        // Update user metadata in auth.users
         await supabase.auth.updateUser({
           data: { avatar_url: publicUrl }
         });
@@ -190,7 +183,6 @@ export function ProfileSection({ user }: { user: User }) {
     try {
       setIsLoading(true);
 
-      // Update profile in profiles table
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -205,7 +197,6 @@ export function ProfileSection({ user }: { user: User }) {
 
       if (profileError) throw profileError;
 
-      // Update user metadata in auth.users
       const { error: authError } = await supabase.auth.updateUser({
         data: {
           first_name: firstName,
@@ -360,10 +351,16 @@ export function ProfileSection({ user }: { user: User }) {
                   <SelectValue placeholder="Select a timezone" />
                 </SelectTrigger>
                 <SelectContent>
-                  {timezones.map((tz) => (
-                    <SelectItem key={tz.value} value={tz.value}>
-                      {tz.label}
-                    </SelectItem>
+                  {Object.entries(groupedTimezones).map(([group, zones]) => (
+                    <div key={group}>
+                      <SelectLabel>{group}</SelectLabel>
+                      {zones.map((tz) => (
+                        <SelectItem key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </SelectItem>
+                      ))}
+                      <SelectSeparator />
+                    </div>
                   ))}
                 </SelectContent>
               </Select>
