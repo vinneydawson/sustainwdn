@@ -35,6 +35,7 @@ export function useProfile(user: User) {
   const [country, setCountry] = useState("");
   const [timezone, setTimezone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const { toast } = useToast();
 
   const [debouncedFirstName] = useDebounce(firstName, 1000);
@@ -101,11 +102,11 @@ export function useProfile(user: User) {
       
       if (data) {
         setProfile(data as Profile);
-        setFirstName(data.first_name || DEFAULT_PROFILE.first_name);
-        setLastName(data.last_name || DEFAULT_PROFILE.last_name);
-        setPhoneNumber(data.phone_number || DEFAULT_PROFILE.phone_number);
-        setCountry(data.country || detectedCountry);
-        setTimezone(data.timezone || DEFAULT_PROFILE.timezone);
+        setFirstName(data.first_name || "");
+        setLastName(data.last_name || "");
+        setPhoneNumber(data.phone_number || "");
+        setCountry(data.country || "");
+        setTimezone(data.timezone || "");
       } else {
         const { error: insertError } = await supabase
           .from("profiles")
@@ -128,6 +129,7 @@ export function useProfile(user: User) {
         setCountry(detectedCountry);
         setTimezone(DEFAULT_PROFILE.timezone);
       }
+      setHasLoaded(true);
     } catch (error: any) {
       toast({
         title: "Error fetching profile",
@@ -142,10 +144,20 @@ export function useProfile(user: User) {
   }, [user]);
 
   useEffect(() => {
-    if (profile) {
+    if (!hasLoaded) return; // Don't trigger save on initial load
+    
+    const valueChanged = 
+      debouncedFirstName !== profile?.first_name ||
+      debouncedLastName !== profile?.last_name ||
+      debouncedPhoneNumber !== profile?.phone_number ||
+      debouncedCountry !== profile?.country ||
+      debouncedTimezone !== profile?.timezone;
+
+    if (valueChanged) {
       handleSave();
     }
   }, [
+    hasLoaded,
     debouncedFirstName,
     debouncedLastName,
     debouncedPhoneNumber,
