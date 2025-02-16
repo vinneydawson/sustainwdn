@@ -167,7 +167,7 @@ export function ProfileSection({ user }: { user: User }) {
             </p>
           </div>
 
-          <div className="grid gap-6">
+          <div className="grid gap-6 max-w-2xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">
@@ -293,7 +293,7 @@ export function ProfileSection({ user }: { user: User }) {
           </div>
         </div>
 
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-end gap-4 max-w-2xl">
           <Button
             variant="outline"
             onClick={handleCancel}
