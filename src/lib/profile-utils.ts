@@ -38,16 +38,13 @@ Object.keys(groupedCountries).forEach(group => {
 
 export const detectUserCountry = async (): Promise<string> => {
   try {
-    const response = await fetch('https://api.ipify.org?format=json');
-    const { ip } = await response.json();
+    const { data, error } = await supabase.functions.invoke('detect-location');
     
-    // Use a more reliable free IP geolocation service
-    const geoResponse = await fetch(`http://ip-api.com/json/${ip}`);
-    const geoData = await geoResponse.json();
+    if (error) throw error;
     
     // If the country code exists in our list, use it, otherwise default to US
-    const countryExists = countries.some(c => c.code === geoData.countryCode);
-    return countryExists ? geoData.countryCode : 'US';
+    const countryExists = countries.some(c => c.code === data.country);
+    return countryExists ? data.country : 'US';
   } catch (error) {
     console.error('Error detecting user country:', error);
     return 'US'; // Default to US if detection fails
