@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -37,23 +38,16 @@ const transformContent = (value: any): { content: string } => {
 };
 
 const parseTasksList = (tasks: TasksResponsibilities | null): string[] => {
-  console.log("Parsing tasks:", tasks);
   if (!tasks || typeof tasks !== 'object') return [];
   return Object.values(tasks).map(task => task.content);
 };
 
 const isCertificatesDegrees = (value: Json | null): value is CertificatesDegreesData => {
-  if (!value || typeof value !== 'object') {
-    console.log("Invalid certificates_degrees value:", value);
-    return false;
-  }
+  if (!value || typeof value !== 'object') return false;
   const certDegrees = value as any;
-  const isValid = Array.isArray(certDegrees.education) &&
+  return Array.isArray(certDegrees.education) &&
     Array.isArray(certDegrees.certificates) &&
     Array.isArray(certDegrees.experience);
-  
-  console.log("Certificates and degrees validation:", { value, isValid });
-  return isValid;
 };
 
 const JobDetails = () => {
@@ -70,77 +64,63 @@ const JobDetails = () => {
 
       console.log("Fetching job with ID:", jobId);
       
-      try {
-        const { data: rawData, error: fetchError } = await supabase
-          .from("job_roles")
-          .select(`
-            *,
-            career_pathways (*)
-          `)
-          .eq('id', jobId)
-          .maybeSingle();
+      const { data: rawData, error: fetchError } = await supabase
+        .from("job_roles")
+        .select(`
+          *,
+          career_pathways (*)
+        `)
+        .eq('id', jobId)
+        .maybeSingle();
 
-        if (fetchError) {
-          console.error("Error fetching job:", fetchError);
-          throw fetchError;
-        }
+      if (fetchError) throw fetchError;
+      if (!rawData) return null;
 
-        if (!rawData) {
-          console.log("No job found with ID:", jobId);
-          return null;
-        }
+      console.log("Raw job data:", rawData);
 
-        console.log("Raw job data:", rawData);
+      const transformedCareerPathway = rawData.career_pathways ? {
+        ...rawData.career_pathways,
+        description: transformContent(rawData.career_pathways.description),
+        requirements: Array.isArray(rawData.career_pathways.requirements)
+          ? rawData.career_pathways.requirements.map(req => transformContent(req))
+          : null
+      } : null;
 
-        const transformedCareerPathway = rawData.career_pathways ? {
-          ...rawData.career_pathways,
-          description: transformContent(rawData.career_pathways.description),
-          requirements: Array.isArray(rawData.career_pathways.requirements)
-            ? rawData.career_pathways.requirements.map(req => transformContent(req))
-            : null
-        } : null;
+      const tasks = rawData.tasks_responsibilities as TasksResponsibilities;
+      const tasksList = parseTasksList(tasks);
 
-        const tasks = rawData.tasks_responsibilities as TasksResponsibilities;
-        const tasksList = parseTasksList(tasks);
+      const transformedJob = {
+        ...rawData,
+        description: transformContent(rawData.description),
+        resources: Array.isArray(rawData.resources)
+          ? rawData.resources.map(res => transformContent(res))
+          : [],
+        related_jobs: Array.isArray(rawData.related_jobs)
+          ? rawData.related_jobs.map(rel => transformContent(rel))
+          : [],
+        tasks_responsibilities: tasksList.reduce((acc, task, index) => {
+          acc[`task_${index + 1}`] = { content: task };
+          return acc;
+        }, {} as Record<string, { content: string }>),
+        certificates_degrees: isCertificatesDegrees(rawData.certificates_degrees) ? {
+          education: rawData.certificates_degrees.education,
+          certificates: rawData.certificates_degrees.certificates,
+          experience: rawData.certificates_degrees.experience
+        } : {
+          education: [],
+          certificates: [],
+          experience: []
+        },
+        career_pathways: transformedCareerPathway
+      };
 
-        console.log("Tasks list:", tasksList);
-
-        const transformedJob = {
-          ...rawData,
-          description: transformContent(rawData.description),
-          resources: Array.isArray(rawData.resources)
-            ? rawData.resources.map(res => transformContent(res))
-            : [],
-          related_jobs: Array.isArray(rawData.related_jobs)
-            ? rawData.related_jobs.map(rel => transformContent(rel))
-            : [],
-          tasks_responsibilities: tasksList.reduce((acc, task, index) => {
-            acc[`task_${index + 1}`] = { content: task };
-            return acc;
-          }, {} as Record<string, { content: string }>),
-          certificates_degrees: isCertificatesDegrees(rawData.certificates_degrees) ? {
-            education: rawData.certificates_degrees.education,
-            certificates: rawData.certificates_degrees.certificates,
-            experience: rawData.certificates_degrees.experience
-          } : {
-            education: [],
-            certificates: [],
-            experience: []
-          },
-          career_pathways: transformedCareerPathway
-        };
-
-        console.log("Transformed job data:", transformedJob);
-        return transformedJob;
-      } catch (error) {
-        console.error("Error in job query:", error);
-        throw error;
-      }
+      console.log("Transformed job data:", transformedJob);
+      return transformedJob;
     },
     retry: 3,
     retryDelay: 1000,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30,   // 30 minutes
     enabled: !!jobId,
   });
 
