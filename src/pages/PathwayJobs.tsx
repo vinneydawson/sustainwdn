@@ -149,7 +149,7 @@ const PathwayJobs = () => {
   console.log("Rendering jobs:", jobs);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#dfe9f7] to-[#f4f8fc]">
       <div className="container mx-auto px-4 py-12">
         <Link to="/explore" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6">
           <ArrowLeft className="h-4 w-4" />
@@ -168,10 +168,16 @@ const PathwayJobs = () => {
           onLevelChange={setSelectedLevel}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {jobs.map((job) => (
-            <PathwayJobCard key={job.id} job={job} />
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+          {jobs && jobs.length > 0 ? (
+            jobs.map((job) => (
+              <PathwayJobCard key={job.id} job={job} />
+            ))
+          ) : (
+            <p className="col-span-full text-center text-gray-500">
+              No jobs found for this pathway{selectedLevel ? ` at ${selectedLevel} level` : ''}.
+            </p>
+          )}
         </div>
       </div>
     </div>
