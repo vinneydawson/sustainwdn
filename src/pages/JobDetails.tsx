@@ -34,20 +34,26 @@ const transformContent = (value: any): { content: string } => {
   if (typeof value === 'object' && value !== null && 'content' in value) {
     return value as { content: string };
   }
-  return { content: JSON.stringify(value) };
+  return { content: String(value) };
 };
 
 const parseTasksList = (tasks: TasksResponsibilities | null): string[] => {
-  if (!tasks || typeof tasks !== 'object') return [];
-  return Object.values(tasks).map(task => task.content);
+  if (!tasks) return [];
+  if (typeof tasks === 'object') {
+    return Object.values(tasks).map(task => 
+      typeof task === 'string' ? task : task.content
+    );
+  }
+  return [];
 };
 
-const isCertificatesDegrees = (value: Json | null): value is CertificatesDegreesData => {
-  if (!value || typeof value !== 'object') return false;
-  const certDegrees = value as any;
-  return Array.isArray(certDegrees.education) &&
-    Array.isArray(certDegrees.certificates) &&
-    Array.isArray(certDegrees.experience);
+const parseArrayContent = (arr: any[] | null): string[] => {
+  if (!arr) return [];
+  return arr.map(item => {
+    if (typeof item === 'string') return item;
+    if (item && typeof item === 'object' && 'content' in item) return item.content;
+    return String(item);
+  }).filter(Boolean);
 };
 
 const JobDetails = () => {
@@ -62,8 +68,6 @@ const JobDetails = () => {
         return null;
       }
 
-      console.log("Fetching job with ID:", jobId);
-      
       const { data: rawData, error: fetchError } = await supabase
         .from("job_roles")
         .select(`
@@ -76,52 +80,38 @@ const JobDetails = () => {
       if (fetchError) throw fetchError;
       if (!rawData) return null;
 
-      console.log("Raw job data:", rawData);
+      // Transform tasks into an array of strings
+      const tasksContent = parseTasksList(rawData.tasks_responsibilities as TasksResponsibilities);
 
-      const transformedCareerPathway = rawData.career_pathways ? {
-        ...rawData.career_pathways,
-        description: transformContent(rawData.career_pathways.description),
-        requirements: Array.isArray(rawData.career_pathways.requirements)
-          ? rawData.career_pathways.requirements.map(req => transformContent(req))
-          : null
-      } : null;
-
-      const tasks = rawData.tasks_responsibilities as TasksResponsibilities;
-      const tasksList = parseTasksList(tasks);
+      // Transform certificates and degrees
+      const certDegrees = rawData.certificates_degrees || {
+        education: [],
+        certificates: [],
+        experience: []
+      };
 
       const transformedJob = {
         ...rawData,
         description: transformContent(rawData.description),
-        resources: Array.isArray(rawData.resources)
-          ? rawData.resources.map(res => transformContent(res))
-          : [],
-        related_jobs: Array.isArray(rawData.related_jobs)
-          ? rawData.related_jobs.map(rel => transformContent(rel))
-          : [],
-        tasks_responsibilities: tasksList.reduce((acc, task, index) => {
-          acc[`task_${index + 1}`] = { content: task };
-          return acc;
-        }, {} as Record<string, { content: string }>),
-        certificates_degrees: isCertificatesDegrees(rawData.certificates_degrees) ? {
-          education: rawData.certificates_degrees.education,
-          certificates: rawData.certificates_degrees.certificates,
-          experience: rawData.certificates_degrees.experience
-        } : {
-          education: [],
-          certificates: [],
-          experience: []
+        tasks_responsibilities: tasksContent,
+        certificates_degrees: {
+          education: Array.isArray(certDegrees.education) ? certDegrees.education : [],
+          certificates: Array.isArray(certDegrees.certificates) ? certDegrees.certificates : [],
+          experience: Array.isArray(certDegrees.experience) ? certDegrees.experience : []
         },
-        career_pathways: transformedCareerPathway
+        resources: parseArrayContent(rawData.resources as any[]),
+        related_jobs: parseArrayContent(rawData.related_jobs as any[]),
+        career_pathways: rawData.career_pathways ? {
+          ...rawData.career_pathways,
+          description: transformContent(rawData.career_pathways.description),
+          requirements: Array.isArray(rawData.career_pathways.requirements) 
+            ? rawData.career_pathways.requirements.map(req => transformContent(req))
+            : []
+        } : null
       };
 
-      console.log("Transformed job data:", transformedJob);
       return transformedJob;
     },
-    retry: 3,
-    retryDelay: 1000,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30,   // 30 minutes
-    enabled: !!jobId,
   });
 
   if (isLoadingJob) {
@@ -166,13 +156,6 @@ const JobDetails = () => {
     );
   }
 
-  const tasks = Object.values(job.tasks_responsibilities || {}).map(t => t.content);
-  const education = job.certificates_degrees?.education || [];
-  const certificates = job.certificates_degrees?.certificates || [];
-  const experience = job.certificates_degrees?.experience || [];
-  const resources = job.resources?.map(r => r.content) || [];
-  const relatedJobs = job.related_jobs?.map(r => r.content) || [];
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
       <div className="container mx-auto px-4 py-12">
@@ -189,20 +172,20 @@ const JobDetails = () => {
               <p className="text-gray-600">{job.description.content}</p>
             </JobSection>
 
-            {tasks.length > 0 && (
-              <JobListSection title="Tasks + Responsibilities" items={tasks} />
+            {Array.isArray(job.tasks_responsibilities) && job.tasks_responsibilities.length > 0 && (
+              <JobListSection title="Tasks + Responsibilities" items={job.tasks_responsibilities} />
             )}
             
-            {education.length > 0 && (
-              <JobListSection title="Education" items={education} />
+            {job.certificates_degrees?.education?.length > 0 && (
+              <JobListSection title="Education" items={job.certificates_degrees.education} />
             )}
             
-            {certificates.length > 0 && (
-              <JobListSection title="Certificates & Degrees" items={certificates} />
+            {job.certificates_degrees?.certificates?.length > 0 && (
+              <JobListSection title="Certificates & Degrees" items={job.certificates_degrees.certificates} />
             )}
             
-            {experience.length > 0 && (
-              <JobListSection title="Work Experience" items={experience} />
+            {job.certificates_degrees?.experience?.length > 0 && (
+              <JobListSection title="Work Experience" items={job.certificates_degrees.experience} />
             )}
 
             {job.salary && (
@@ -217,12 +200,12 @@ const JobDetails = () => {
               </JobSection>
             )}
 
-            {resources.length > 0 && (
-              <JobListSection title="Resources" items={resources} />
+            {job.resources?.length > 0 && (
+              <JobListSection title="Resources" items={job.resources} />
             )}
             
-            {relatedJobs.length > 0 && (
-              <JobListSection title="Related Jobs" items={relatedJobs} />
+            {job.related_jobs?.length > 0 && (
+              <JobListSection title="Related Jobs" items={job.related_jobs} />
             )}
           </div>
         </div>
