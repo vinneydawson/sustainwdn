@@ -24,10 +24,16 @@ const transformContent = (value: any): { content: string } => {
   return { content: String(value) };
 };
 
-const parseTasks = (tasks: Record<string, any> | null): Record<string, { content: string }> => {
-  if (!tasks || typeof tasks !== 'object') return {};
+const parseJsonToRecord = (json: Json | null): Record<string, any> | null => {
+  if (!json || typeof json !== 'object') return null;
+  return json as Record<string, any>;
+};
+
+const parseTasks = (tasks: Json | null): Record<string, { content: string }> => {
+  const tasksRecord = parseJsonToRecord(tasks);
+  if (!tasksRecord) return {};
   
-  return Object.entries(tasks).reduce((acc, [key, value]) => {
+  return Object.entries(tasksRecord).reduce((acc, [key, value]) => {
     acc[key] = typeof value === 'string' 
       ? { content: value }
       : typeof value === 'object' && value !== null && 'content' in value
