@@ -135,7 +135,7 @@ const PathwayJobs = () => {
 
   if (!pathway) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">Pathway not found</h1>
           <Link to="/explore" className="text-primary-600 hover:text-primary-700">
@@ -149,7 +149,7 @@ const PathwayJobs = () => {
   console.log("Rendering jobs:", jobs);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#dfe9f7] to-[#f4f8fc]">
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
       <div className="container mx-auto px-4 py-12">
         <Link to="/explore" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6">
           <ArrowLeft className="h-4 w-4" />
