@@ -14,19 +14,6 @@ type JobRouteParams = {
   jobId: string;
 }
 
-interface TasksResponsibilities {
-  [key: string]: {
-    content: string;
-  };
-}
-
-interface CertificatesDegreesData {
-  education: string[];
-  certificates: string[];
-  experience: string[];
-  [key: string]: Json;
-}
-
 const transformContent = (value: any): { content: string } => {
   if (typeof value === 'string') {
     return { content: value };
@@ -37,23 +24,17 @@ const transformContent = (value: any): { content: string } => {
   return { content: String(value) };
 };
 
-const parseTasksList = (tasks: TasksResponsibilities | null): string[] => {
-  if (!tasks) return [];
-  if (typeof tasks === 'object') {
-    return Object.values(tasks).map(task => 
-      typeof task === 'string' ? task : task.content
-    );
-  }
-  return [];
-};
-
-const parseArrayContent = (arr: any[] | null): string[] => {
-  if (!arr) return [];
-  return arr.map(item => {
-    if (typeof item === 'string') return item;
-    if (item && typeof item === 'object' && 'content' in item) return item.content;
-    return String(item);
-  }).filter(Boolean);
+const parseTasks = (tasks: Record<string, any> | null): Record<string, { content: string }> => {
+  if (!tasks || typeof tasks !== 'object') return {};
+  
+  return Object.entries(tasks).reduce((acc, [key, value]) => {
+    acc[key] = typeof value === 'string' 
+      ? { content: value }
+      : typeof value === 'object' && value !== null && 'content' in value
+        ? { content: String(value.content) }
+        : { content: String(value) };
+    return acc;
+  }, {} as Record<string, { content: string }>);
 };
 
 const JobDetails = () => {
@@ -80,27 +61,27 @@ const JobDetails = () => {
       if (fetchError) throw fetchError;
       if (!rawData) return null;
 
-      // Transform tasks into an array of strings
-      const tasksContent = parseTasksList(rawData.tasks_responsibilities as TasksResponsibilities);
-
-      // Transform certificates and degrees
-      const certDegrees = rawData.certificates_degrees || {
+      const certDegrees = rawData.certificates_degrees as Record<string, any> || {
         education: [],
         certificates: [],
         experience: []
       };
 
-      const transformedJob = {
+      const transformedJob: JobRole = {
         ...rawData,
         description: transformContent(rawData.description),
-        tasks_responsibilities: tasksContent,
+        tasks_responsibilities: parseTasks(rawData.tasks_responsibilities),
         certificates_degrees: {
           education: Array.isArray(certDegrees.education) ? certDegrees.education : [],
           certificates: Array.isArray(certDegrees.certificates) ? certDegrees.certificates : [],
           experience: Array.isArray(certDegrees.experience) ? certDegrees.experience : []
         },
-        resources: parseArrayContent(rawData.resources as any[]),
-        related_jobs: parseArrayContent(rawData.related_jobs as any[]),
+        resources: Array.isArray(rawData.resources) 
+          ? rawData.resources.map((r: any) => typeof r === 'string' ? { content: r } : r)
+          : [],
+        related_jobs: Array.isArray(rawData.related_jobs)
+          ? rawData.related_jobs.map((r: any) => typeof r === 'string' ? { content: r } : r)
+          : [],
         career_pathways: rawData.career_pathways ? {
           ...rawData.career_pathways,
           description: transformContent(rawData.career_pathways.description),
@@ -156,6 +137,8 @@ const JobDetails = () => {
     );
   }
 
+  const tasksList = Object.values(job.tasks_responsibilities || {}).map(t => t.content);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white">
       <div className="container mx-auto px-4 py-12">
@@ -172,8 +155,8 @@ const JobDetails = () => {
               <p className="text-gray-600">{job.description.content}</p>
             </JobSection>
 
-            {Array.isArray(job.tasks_responsibilities) && job.tasks_responsibilities.length > 0 && (
-              <JobListSection title="Tasks + Responsibilities" items={job.tasks_responsibilities} />
+            {tasksList.length > 0 && (
+              <JobListSection title="Tasks + Responsibilities" items={tasksList} />
             )}
             
             {job.certificates_degrees?.education?.length > 0 && (
@@ -201,11 +184,17 @@ const JobDetails = () => {
             )}
 
             {job.resources?.length > 0 && (
-              <JobListSection title="Resources" items={job.resources} />
+              <JobListSection 
+                title="Resources" 
+                items={job.resources.map(r => r.content)} 
+              />
             )}
             
             {job.related_jobs?.length > 0 && (
-              <JobListSection title="Related Jobs" items={job.related_jobs} />
+              <JobListSection 
+                title="Related Jobs" 
+                items={job.related_jobs.map(r => r.content)} 
+              />
             )}
           </div>
         </div>
