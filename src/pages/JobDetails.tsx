@@ -37,6 +37,23 @@ const parseTasks = (tasks: Record<string, any> | null): Record<string, { content
   }, {} as Record<string, { content: string }>);
 };
 
+const parseCertificatesDegrees = (data: Json | null) => {
+  if (!data || typeof data !== 'object') {
+    return {
+      education: [],
+      certificates: [],
+      experience: []
+    };
+  }
+
+  const certDegrees = data as Record<string, unknown>;
+  return {
+    education: Array.isArray(certDegrees.education) ? certDegrees.education : [],
+    certificates: Array.isArray(certDegrees.certificates) ? certDegrees.certificates : [],
+    experience: Array.isArray(certDegrees.experience) ? certDegrees.experience : []
+  };
+};
+
 const JobDetails = () => {
   const { jobId } = useParams<JobRouteParams>();
   const navigate = useNavigate();
@@ -61,21 +78,11 @@ const JobDetails = () => {
       if (fetchError) throw fetchError;
       if (!rawData) return null;
 
-      const certDegrees = rawData.certificates_degrees as Record<string, any> || {
-        education: [],
-        certificates: [],
-        experience: []
-      };
-
       const transformedJob: JobRole = {
         ...rawData,
         description: transformContent(rawData.description),
         tasks_responsibilities: parseTasks(rawData.tasks_responsibilities),
-        certificates_degrees: {
-          education: Array.isArray(certDegrees.education) ? certDegrees.education : [],
-          certificates: Array.isArray(certDegrees.certificates) ? certDegrees.certificates : [],
-          experience: Array.isArray(certDegrees.experience) ? certDegrees.experience : []
-        },
+        certificates_degrees: parseCertificatesDegrees(rawData.certificates_degrees),
         resources: Array.isArray(rawData.resources) 
           ? rawData.resources.map((r: any) => typeof r === 'string' ? { content: r } : r)
           : [],
