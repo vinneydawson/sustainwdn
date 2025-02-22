@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,14 +10,22 @@ function isJsonArray(value: Json): value is Json[] {
   return Array.isArray(value);
 }
 
-export function useJobs() {
+interface UseJobsOptions {
+  pathwayId?: string;
+  level?: string;
+}
+
+export function useJobs(options: UseJobsOptions = {}) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { pathwayId, level } = options;
 
   const { data: jobs, isLoading } = useQuery({
-    queryKey: ["jobs"],
+    queryKey: ["jobs", { pathwayId, level }],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log("Fetching jobs with filters:", { pathwayId, level });
+      
+      let query = supabase
         .from("job_roles")
         .select(`
           *,
@@ -26,9 +33,24 @@ export function useJobs() {
         `)
         .order("display_order", { ascending: true });
 
-      if (error) throw error;
+      if (pathwayId) {
+        query = query.eq("pathway_id", pathwayId);
+      }
 
-      return data.map(job => ({
+      if (level) {
+        query = query.eq("level", level);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Error fetching jobs:", error);
+        throw error;
+      }
+
+      console.log("Raw jobs data:", data);
+
+      const transformedJobs = data.map(job => ({
         ...job,
         description: typeof job.description === 'string'
           ? { content: job.description }
@@ -48,6 +70,9 @@ export function useJobs() {
             )
           : null,
       })) as JobRole[];
+
+      console.log("Transformed jobs data:", transformedJobs);
+      return transformedJobs;
     },
   });
 

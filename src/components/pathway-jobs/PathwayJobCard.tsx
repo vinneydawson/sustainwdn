@@ -9,20 +9,20 @@ interface PathwayJobCardProps {
 }
 
 export const PathwayJobCard = ({ job }: PathwayJobCardProps) => {
-  console.log("PathwayJobCard rendering with job:", job);
-  
   if (!job || !job.id) {
     console.error("Invalid job data:", job);
     return null;
   }
 
+  const description = typeof job.description === 'string' 
+    ? job.description 
+    : job.description?.content || 'No description available';
+
   return (
     <Card key={job.id} className="p-6 hover:shadow-lg transition-shadow">
       <h3 className="text-xl font-semibold mb-4">{job.title}</h3>
       <p className="text-gray-600 mb-4 text-left">
-        {typeof job.description === 'string' 
-          ? job.description 
-          : job.description?.content || 'No description available'}
+        {description}
       </p>
       <p className="text-sm text-primary-600 mb-4 text-left">
         {job.level.charAt(0).toUpperCase() + job.level.slice(1)} Level
